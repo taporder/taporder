@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bar Dashboard — Taporder</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08080f;--bg2:#0f0f1a;--bg3:#151520;--bg4:#1c1c28;--bg5:#242433;
+  --accent:#f5a623;--green:#00c896;--red:#ff3b3b;--blue:#4f8ef5;--purple:#a78bfa;
+  --text:#f2efe8;--text2:#9e9b94;--text3:#5a5855;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --r:14px;--r2:9px;
+}
+html,body{height:100%}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;min-height:100vh}
+
+/* NAV */
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 1.5rem;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-shrink:0}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem;color:var(--accent)}
+.logo small{font-size:.7rem;color:var(--text3);font-family:'Outfit',sans-serif;font-weight:400;margin-left:.4rem}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 2s infinite;margin-right:.3rem}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.live-label{font-size:.8rem;color:var(--text3);display:flex;align-items:center}
+.nav-tabs{display:flex;gap:.25rem}
+.nav-tab{background:transparent;border:none;color:var(--text2);font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:500;padding:.4rem .8rem;border-radius:var(--r2);cursor:pointer;transition:.15s;position:relative;white-space:nowrap}
+.nav-tab:hover{background:var(--bg4);color:var(--text)}
+.nav-tab.active{background:var(--accent);color:#000}
+.nav-badge{position:absolute;top:-2px;right:-4px;background:var(--red);color:#fff;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:10px;min-width:16px;text-align:center}
+
+main{flex:1;padding:1.25rem 1.5rem;max-width:1400px;width:100%;margin:0 auto}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem 1.25rem;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.green::before{background:var(--green)}.stat-card.red::before{background:var(--red)}
+.stat-card.amber::before{background:var(--accent)}.stat-card.blue::before{background:var(--blue)}
+.stat-card.purple::before{background:var(--purple)}
+.stat-label{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.35rem}
+.stat-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.65rem}
+.stat-val.green{color:var(--green)}.stat-val.red{color:var(--red)}.stat-val.amber{color:var(--accent)}.stat-val.blue{color:var(--blue)}.stat-val.purple{color:var(--purple)}
+
+/* SECTION */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem;flex-wrap:wrap;gap:.5rem}
+.section-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
+.section-count{background:var(--bg4);border:1px solid var(--border);border-radius:20px;padding:.15rem .6rem;font-size:.75rem;color:var(--text2)}
+
+/* ORDER CARDS */
+.orders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.85rem;margin-bottom:1.75rem}
+.order-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;border-left:4px solid transparent}
+.order-card.cash{border-left-color:var(--red);background:rgba(255,59,59,.04)}
+.order-card.bancontact{border-left-color:var(--green)}
+.order-card.done{opacity:.4}
+.oc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.75rem;gap:.5rem}
+.oc-table{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem}
+.oc-badges{display:flex;gap:.35rem;flex-wrap:wrap}
+.badge{display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.7rem;font-weight:600}
+.badge-green{background:rgba(0,200,150,.15);color:var(--green);border:1px solid rgba(0,200,150,.3)}
+.badge-red{background:rgba(255,59,59,.2);color:var(--red);border:1px solid rgba(255,59,59,.4)}
+.badge-amber{background:rgba(245,166,35,.15);color:var(--accent);border:1px solid rgba(245,166,35,.3)}
+.badge-blue{background:rgba(79,142,245,.15);color:var(--blue);border:1px solid rgba(79,142,245,.25)}
+.oc-items{display:flex;flex-direction:column;gap:.3rem;margin-bottom:.85rem}
+.oc-item{display:flex;align-items:center;justify-content:space-between;font-size:.85rem}
+.oc-item-name{color:var(--text2)}.oc-item-qty{background:var(--bg4);border-radius:4px;padding:1px 7px;font-size:.78rem;font-weight:600;margin-right:.4rem}
+.oc-footer{display:flex;align-items:center;justify-content:space-between;padding-top:.75rem;border-top:1px solid var(--border)}
+.oc-total{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;color:var(--accent)}
+.oc-time{font-size:.73rem;color:var(--text3)}.oc-actions{display:flex;gap:.4rem}
+
+/* BUTTONS */
+.btn{border:none;border-radius:var(--r2);cursor:pointer;font-family:'Outfit',sans-serif;font-weight:600;display:inline-flex;align-items:center;gap:.3rem;transition:.15s;white-space:nowrap}
+.btn:active{transform:scale(.96)}
+.btn-check{background:var(--green);color:#fff;padding:.4rem .85rem;font-size:.8rem}
+.btn-del{background:var(--bg4);border:1px solid var(--border2);color:var(--text3);padding:.4rem .6rem;font-size:.8rem}
+.btn-del:hover{border-color:var(--red);color:var(--red)}
+.btn-add{background:var(--bg4);border:1px solid var(--border2);border-radius:var(--r2);padding:.4rem .8rem;font-family:'Outfit',sans-serif;font-size:.8rem;color:var(--text2);cursor:pointer;transition:.15s}
+.btn-add:hover{border-color:var(--accent);color:var(--accent)}
+.btn-primary{background:var(--accent);border:none;border-radius:var(--r2);padding:.5rem 1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;color:#000;cursor:pointer}
+.btn-purple{background:var(--purple);color:#fff;border:none;border-radius:var(--r2);padding:.5rem 1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:.4rem}
+.btn-danger{background:var(--red);color:#fff;border:none;border-radius:var(--r2);padding:.5rem 1rem;font-family:'Outfit',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer}
+
+.empty-state{text-align:center;padding:3rem 1rem;color:var(--text3);font-size:.9rem;grid-column:1/-1}
+.empty-icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.5}
+
+/* TAFELS */
+.tables-overview{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-bottom:1.5rem}
+.table-status-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem;position:relative}
+.table-status-card.bezet{border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.04)}
+.ts-num{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;margin-bottom:.3rem}
+.ts-orders{font-size:.8rem;color:var(--text3)}.ts-total{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--accent);margin-top:.3rem}
+.ts-badge{position:absolute;top:.75rem;right:.75rem}
+.ts-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}
+.ts-dot.bezet{background:var(--accent)}
+.ts-actions{display:flex;gap:.4rem;margin-top:.85rem;flex-wrap:wrap}
+.btn-rekening{background:var(--accent);color:#000;border:none;border-radius:var(--r2);padding:.4rem .75rem;font-family:'Outfit',sans-serif;font-weight:600;font-size:.78rem;cursor:pointer}
+.btn-leeg{background:transparent;color:var(--text3);border:1px solid var(--border2);border-radius:var(--r2);padding:.4rem .75rem;font-family:'Outfit',sans-serif;font-size:.78rem;cursor:pointer}
+.btn-leeg:hover{border-color:var(--red);color:var(--red)}
+
+/* ADMIN */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem}
+.card-title{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.admin-row{display:flex;align-items:center;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid var(--border);gap:.5rem}
+.admin-row:last-child{border-bottom:none}
+.ar-name{font-size:.9rem;font-weight:500}.ar-sub{font-size:.75rem;color:var(--text3);margin-top:1px}
+.ar-price{font-family:'Syne',sans-serif;font-weight:700;color:var(--accent);font-size:.95rem;min-width:3.5rem;text-align:right}
+.ar-actions{display:flex;gap:.35rem}
+.icon-btn{width:30px;height:30px;border-radius:var(--r2);background:var(--bg4);border:1px solid var(--border);color:var(--text2);font-size:.85rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.icon-btn.danger:hover{border-color:var(--red);color:var(--red)}
+.btw-pill{font-size:.7rem;padding:2px 7px;border-radius:10px;font-weight:600;margin-left:.4rem}
+.btw-6{background:rgba(0,200,150,.15);color:var(--green)}.btw-12{background:rgba(245,166,35,.15);color:var(--accent)}.btw-21{background:rgba(255,59,59,.15);color:var(--red)}
+
+.add-form{background:var(--bg3);border-radius:var(--r2);padding:.9rem;margin-bottom:.75rem;display:none;border:1px solid var(--border2)}
+.add-form.open{display:block}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:.6rem}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:.6rem}
+.form-field label{display:block;font-size:.75rem;color:var(--text3);margin-bottom:.25rem}
+input[type=text],input[type=number],input[type=password],select,textarea{background:var(--bg4);border:1px solid var(--border2);color:var(--text);border-radius:var(--r2);padding:.45rem .7rem;font-family:'Outfit',sans-serif;font-size:.85rem;width:100%;outline:none;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--bg4)}
+textarea{resize:vertical;min-height:60px}
+.form-actions{display:flex;gap:.5rem;margin-top:.5rem}
+.btn-save{background:var(--accent);border:none;border-radius:var(--r2);padding:.45rem .9rem;font-family:'Outfit',sans-serif;font-weight:600;font-size:.82rem;color:#000;cursor:pointer}
+.btn-cancel{background:transparent;border:1px solid var(--border2);border-radius:var(--r2);padding:.45rem .9rem;font-family:'Outfit',sans-serif;font-size:.82rem;color:var(--text2);cursor:pointer}
+
+/* TOGGLE */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid var(--border)}
+.toggle-row:last-child{border-bottom:none}
+.toggle-label{font-size:.9rem;font-weight:500}
+.toggle-sub{font-size:.75rem;color:var(--text3);margin-top:1px}
+.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--bg4);border-radius:12px;cursor:pointer;transition:.2s;border:1px solid var(--border2)}
+.toggle input:checked+.toggle-slider{background:var(--green);border-color:var(--green)}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px)}
+
+/* QR */
+.qr-item{display:flex;align-items:center;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.qr-item:last-child{border-bottom:none}
+.qr-thumb{width:40px;height:40px;background:#fff;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.qr-info{flex:1}.qr-name{font-size:.85rem;font-weight:500}.qr-url{font-size:.73rem;color:var(--text3);margin-top:1px;word-break:break-all}
+.qr-copy{background:var(--bg4);border:1px solid var(--border);border-radius:var(--r2);padding:.3rem .6rem;font-size:.75rem;color:var(--text2);cursor:pointer;flex-shrink:0}
+.qr-copy:hover{border-color:var(--accent);color:var(--accent)}
+
+/* HISTORIEK */
+.history-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.history-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1.1rem}
+.hc-date{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:.75rem}
+.hc-row{display:flex;justify-content:space-between;font-size:.85rem;padding:.25rem 0;border-bottom:1px solid var(--border)}
+.hc-row:last-child{border-bottom:none}
+.hc-total{font-family:'Syne',sans-serif;font-weight:700;color:var(--accent)}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);width:100%;max-width:540px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem}
+.modal-close{background:var(--bg4);border:1px solid var(--border);width:32px;height:32px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;color:var(--text2)}
+.modal-body{padding:1.25rem 1.5rem}.modal-footer{padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;gap:.75rem;flex-wrap:wrap}
+
+.rekening-item{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.rekening-item:last-child{border-bottom:none}
+.ri-name{color:var(--text2)}.ri-qty{background:var(--bg4);border-radius:4px;padding:1px 7px;font-size:.78rem;font-weight:600;margin-right:.4rem}
+.rekening-total{display:flex;justify-content:space-between;align-items:center;padding:1rem 0 0;margin-top:.5rem;border-top:2px solid var(--border2)}
+.rt-label{font-size:.9rem;color:var(--text2)}.rt-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.4rem;color:var(--accent)}
+.btw-block{margin-top:.75rem;padding:.75rem;background:var(--bg3);border-radius:var(--r2);font-size:.82rem}
+.btw-row{display:flex;justify-content:space-between;padding:.2rem 0;color:var(--text2)}
+.btw-row.total{color:var(--text);font-weight:600;border-top:1px solid var(--border);margin-top:.3rem;padding-top:.4rem}
+
+.btn-print{background:var(--accent);color:#000;border:none;border-radius:var(--r2);padding:.6rem 1.2rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.88rem;cursor:pointer}
+.btn-leeg-modal{background:var(--red);color:#fff;border:none;border-radius:var(--r2);padding:.6rem 1.2rem;font-family:'Outfit',sans-serif;font-weight:600;font-size:.88rem;cursor:pointer}
+.btn-sluiten{background:transparent;border:1px solid var(--border2);color:var(--text2);border-radius:var(--r2);padding:.6rem 1rem;font-family:'Outfit',sans-serif;font-size:.88rem;cursor:pointer}
+
+/* Z-RAPPORT */
+.zrap-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.zrap-row:last-child{border-bottom:none}
+.zrap-row.total{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--accent);border-top:2px solid var(--border2);margin-top:.4rem;padding-top:.6rem}
+.zrap-btw-row{display:flex;justify-content:space-between;padding:.35rem 0;font-size:.85rem;border-bottom:1px solid var(--border)}
+.zrap-btw-row:last-child{border-bottom:none}
+
+/* PIN SCREEN */
+#pin-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem}
+#pin-screen.hidden{display:none}
+.pin-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--accent)}
+.pin-title{font-size:.9rem;color:var(--text3)}
+.pin-dots{display:flex;gap:.75rem}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:var(--bg4);border:2px solid var(--border2);transition:.15s}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;max-width:240px;width:100%}
+.pin-btn{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:1.3rem;color:var(--text);cursor:pointer;text-align:center;transition:.15s;-webkit-tap-highlight-color:transparent}
+.pin-btn:active{background:var(--accent);color:#000;border-color:var(--accent)}
+.pin-error{color:var(--red);font-size:.85rem;min-height:1.2rem}
+
+/* OPEN/GESLOTEN BANNER */
+.closed-banner{background:rgba(255,59,59,.1);border:1px solid rgba(255,59,59,.3);border-radius:var(--r2);padding:.75rem 1rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;font-size:.88rem}
+.closed-banner.hidden{display:none}
+
+/* TOAST */
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(60px);background:var(--bg4);border:1px solid var(--border2);color:var(--text);padding:.55rem 1.2rem;border-radius:var(--r2);font-size:.85rem;font-weight:500;z-index:9999;transition:.25s;opacity:0;pointer-events:none;white-space:nowrap}
+#toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+#print-area{display:none}
+@media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}.admin-grid{grid-template-columns:1fr}.orders-grid{grid-template-columns:1fr}}
+@media(max-width:600px){main{padding:.85rem 1rem}nav{padding:0 1rem}.stats-row{grid-template-columns:1fr 1fr;gap:.6rem}.nav-tabs{gap:.1rem}.nav-tab{padding:.4rem .55rem;font-size:.75rem}}
+</style>
+</head>
+<body>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen">
+  <div class="pin-logo" id="pin-cafe-name">Taporder</div>
+  <div class="pin-title">Voer PIN in om toegang te krijgen</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinPress('1')">1</button>
+    <button class="pin-btn" onclick="pinPress('2')">2</button>
+    <button class="pin-btn" onclick="pinPress('3')">3</button>
+    <button class="pin-btn" onclick="pinPress('4')">4</button>
+    <button class="pin-btn" onclick="pinPress('5')">5</button>
+    <button class="pin-btn" onclick="pinPress('6')">6</button>
+    <button class="pin-btn" onclick="pinPress('7')">7</button>
+    <button class="pin-btn" onclick="pinPress('8')">8</button>
+    <button class="pin-btn" onclick="pinPress('9')">9</button>
+    <button class="pin-btn" onclick="pinClear()" style="font-size:.9rem;color:var(--text3)">✕</button>
+    <button class="pin-btn" onclick="pinPress('0')">0</button>
+    <button class="pin-btn" onclick="pinBack()" style="font-size:.9rem">⌫</button>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;flex-direction:column;min-height:100vh">
+<nav>
+  <div style="display:flex;align-items:center;gap:.75rem">
+    <div class="logo" id="nav-cafe-name">Taporder <small>bar</small></div>
+    <div class="live-label"><span class="live-dot"></span><span id="live-status">Verbinden...</span></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.5rem">
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-orders" onclick="showTab('orders')">Bestellingen <span class="nav-badge" id="new-badge" style="display:none">0</span></button>
+      <button class="nav-tab" id="tab-tafels" onclick="showTab('tafels')">Tafels</button>
+      <button class="nav-tab" id="tab-zrap" onclick="showTab('zrap')">Z-Rapport</button>
+      <button class="nav-tab" id="tab-history" onclick="showTab('history')">Historiek</button>
+      <button class="nav-tab" id="tab-admin" onclick="showTab('admin')">Beheer</button>
+    </div>
+    <button onclick="lockApp()" style="background:var(--bg4);border:1px solid var(--border2);color:var(--text3);border-radius:var(--r2);padding:.4rem .6rem;font-size:.8rem;cursor:pointer">🔒</button>
+  </div>
+</nav>
+
+<main style="display:flex;flex-direction:column;flex:1">
+  <!-- GESLOTEN BANNER -->
+  <div class="closed-banner hidden" id="closed-banner">
+    <span>⛔ Menu staat momenteel op <strong>GESLOTEN</strong> — klanten kunnen niet bestellen</span>
+    <button onclick="toggleOpen(true)" class="btn-save" style="font-size:.78rem;padding:.3rem .7rem">Openen</button>
+  </div>
+
+  <!-- BESTELLINGEN -->
+  <div id="tab-orders-content">
+    <div class="stats-row" id="stats-row"></div>
+    <div class="section-head">
+      <div style="display:flex;align-items:center;gap:.6rem"><span class="section-title">Nieuwe bestellingen</span><span class="section-count" id="new-count">0</span></div>
+      <button class="btn-add" onclick="clearAllDone()">Archiveer afgewerkt</button>
+    </div>
+    <div class="orders-grid" id="orders-new"></div>
+    <div class="section-head"><div style="display:flex;align-items:center;gap:.6rem"><span class="section-title">Afgerond vandaag</span><span class="section-count" id="done-count">0</span></div></div>
+    <div class="orders-grid" id="orders-done"></div>
+  </div>
+
+  <!-- TAFELS -->
+  <div id="tab-tafels-content" style="display:none">
+    <div style="margin-bottom:1.25rem"><div style="font-family:'Syne',sans-serif;font-weight:700;font-size:.8rem;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin-bottom:.5rem">Tafelbeheer</div></div>
+    <div class="tables-overview" id="tables-overview"></div>
+  </div>
+
+  <!-- Z-RAPPORT -->
+  <div id="tab-zrap-content" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+      <div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem">Z-Rapport — Dagafsluiting</div><div style="font-size:.82rem;color:var(--text3);margin-top:.2rem">BTW-uitsplitsing per tarief · Belgische vereisten</div></div>
+      <div style="display:flex;gap:.6rem;flex-wrap:wrap">
+        <button class="btn-purple" onclick="exportCSV()">📥 CSV Export</button>
+        <button class="btn-purple" onclick="printZRapport()">🖨 Afdrukken</button>
+        <button class="btn-danger" onclick="dagAfsluiting()">⚠ Dag afsluiten</button>
+      </div>
+    </div>
+    <div id="zrap-content"></div>
+  </div>
+
+  <!-- HISTORIEK -->
+  <div id="tab-history-content" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+      <div><div style="font-family:'Syne',sans-serif;font-weight:800;font-size:1.3rem">Historiek</div><div style="font-size:.82rem;color:var(--text3);margin-top:.2rem">Gearchiveerde dagrapporten</div></div>
+      <button class="btn-purple" onclick="exportHistoryCSV()">📥 Alles exporteren</button>
+    </div>
+    <div class="history-grid" id="history-grid"></div>
+  </div>
+
+  <!-- BEHEER -->
+  <div id="tab-admin-content" style="display:none">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem" id="admin-grid-outer">
+
+      <!-- Producten -->
+      <div class="card">
+        <div class="card-title">Producten <button class="btn-add" onclick="toggleForm('prod-form')">+ Toevoegen</button></div>
+        <div class="add-form" id="prod-form">
+          <div class="form-grid">
+            <div class="form-field"><label>Naam *</label><input type="text" id="f-name" placeholder="Flat White"></div>
+            <div class="form-field"><label>Prijs incl. BTW (€) *</label><input type="number" id="f-price" placeholder="3.50" step="0.10" min="0"></div>
+            <div class="form-field"><label>Categorie</label><select id="f-cat"><option>☕ Koffie</option><option>🥤 Dranken</option><option>🍺 Bier</option><option>🍷 Wijn</option><option>🥐 Snacks</option><option>🍽 Andere</option></select></div>
+            <div class="form-field"><label>BTW-tarief *</label><select id="f-btw"><option value="6">6% — Voeding</option><option value="12">12% — Warme dranken</option><option value="21" selected>21% — Alcohol/frisdranken</option></select></div>
+            <div class="form-field"><label>Emoji</label><input type="text" id="f-emoji" placeholder="☕" maxlength="2"></div>
+            <div class="form-field"><label>Omschrijving</label><input type="text" id="f-desc" placeholder="Korte beschrijving"></div>
+          </div>
+          <div class="form-field" style="margin-bottom:.5rem">
+            <label>Allergenen (Verordening EU 1169/2011) — meerdere selecteerbaar</label>
+            <div id="allergen-checkboxes" style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem .75rem;margin-top:.35rem">
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="gluten" style="width:auto;accent-color:var(--accent)"> 🌾 Gluten</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="schaaldieren" style="width:auto;accent-color:var(--accent)"> 🦐 Schaaldieren</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="eieren" style="width:auto;accent-color:var(--accent)"> 🥚 Eieren</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="vis" style="width:auto;accent-color:var(--accent)"> 🐟 Vis</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="pindas" style="width:auto;accent-color:var(--accent)"> 🥜 Pinda's</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="soja" style="width:auto;accent-color:var(--accent)"> 🫘 Soja</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="melk" style="width:auto;accent-color:var(--accent)"> 🥛 Melk/Lactose</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="noten" style="width:auto;accent-color:var(--accent)"> 🌰 Noten</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="selderij" style="width:auto;accent-color:var(--accent)"> 🌿 Selderij</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="mosterd" style="width:auto;accent-color:var(--accent)"> 🟡 Mosterd</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="sesamzaad" style="width:auto;accent-color:var(--accent)"> 🌱 Sesamzaad</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="sulfieten" style="width:auto;accent-color:var(--accent)"> 🍷 Sulfieten</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="lupine" style="width:auto;accent-color:var(--accent)"> 🌼 Lupine</label>
+              <label style="display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--text2);cursor:pointer"><input type="checkbox" value="weekdieren" style="width:auto;accent-color:var(--accent)"> 🐚 Weekdieren</label>
+            </div>
+          </div>
+          <div class="form-actions"><button class="btn-save" onclick="saveProduct()">Opslaan</button><button class="btn-cancel" onclick="toggleForm('prod-form')">Annuleren</button></div>
+        </div>
+        <div id="product-list"></div>
+      </div>
+
+      <!-- Tafels + QR -->
+      <div>
+        <div class="card" style="margin-bottom:1rem">
+          <div class="card-title">Tafels <button class="btn-add" onclick="addTable()">+ Toevoegen</button></div>
+          <div id="tables-list"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">NFC / QR links</div>
+          <div style="background:var(--bg3);border-radius:var(--r2);padding:.75rem;margin-bottom:.85rem;font-size:.8rem;color:var(--text2);line-height:1.6">Kopieer de link per tafel voor NFC-tags of QR-codes.</div>
+          <div id="qr-list"></div>
+        </div>
+      </div>
+
+      <!-- Instellingen -->
+      <div class="card" style="grid-column:1/-1">
+        <div class="card-title">Instellingen</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+
+          <!-- Branding -->
+          <div>
+            <div style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">Branding</div>
+            <div class="form-grid">
+              <div class="form-field"><label>Naam café</label><input type="text" id="s-name" placeholder="Café de Kroon"></div>
+              <div class="form-field"><label>Ondertitel</label><input type="text" id="s-subtitle" placeholder="Welkom!"></div>
+              <div class="form-field"><label>Logo emoji</label><input type="text" id="s-emoji" placeholder="☕" maxlength="2"></div>
+              <div class="form-field"><label>Accentkleur</label><input type="text" id="s-color" placeholder="#f5a623"></div>
+            </div>
+            <div class="form-field" style="margin-bottom:.75rem"><label>Slotboodschap footer</label><input type="text" id="s-footer" placeholder="Bedankt voor uw bezoek!"></div>
+          </div>
+
+          <!-- Beveiliging + Mollie + Status -->
+          <div>
+            <div style="font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.75rem">Beveiliging & Betaling</div>
+            <div class="form-field" style="margin-bottom:.6rem"><label>PIN code (4 cijfers)</label><input type="password" id="s-pin" placeholder="••••" maxlength="4"></div>
+            <div style="background:var(--bg3);border-radius:var(--r2);padding:.75rem;margin-bottom:.6rem;font-size:.8rem;color:var(--text2);line-height:1.6">
+              <strong style="color:var(--accent)">💳 Mollie betaling</strong><br>
+              De Mollie API key wordt <strong>veilig</strong> bewaard als Netlify Environment Variable.<br>
+              Stel in via: Netlify → Site settings → Environment variables → <code style="background:var(--bg4);padding:1px 5px;border-radius:3px">MOLLIE_API_KEY</code>
+            </div>
+            <div class="form-field" style="margin-bottom:.6rem">
+              <label>Taal klantenpagina</label>
+              <select id="s-lang"><option value="nl">Nederlands</option><option value="fr">Français</option><option value="en">English</option></select>
+            </div>
+            <div class="toggle-row" style="border:none;padding-top:.5rem">
+              <div><div class="toggle-label">Menu open voor klanten</div><div class="toggle-sub">Uitzetten = klanten kunnen niet bestellen</div></div>
+              <label class="toggle"><input type="checkbox" id="s-open" checked onchange="toggleOpen(this.checked)"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="form-field" style="margin-top:.6rem"><label>Boodschap als gesloten</label><input type="text" id="s-closed-msg" placeholder="We zijn momenteel gesloten."></div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:.75rem">
+          <button class="btn-save" onclick="saveSettings()">💾 Instellingen opslaan</button>
+          <button class="btn-cancel" onclick="loadSettings()">↺ Annuleren</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+</div>
+
+<!-- REKENING MODAL -->
+<div class="modal-overlay" id="rekening-modal" onclick="closeModalIf(event,'rekening-modal')">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title" id="modal-title">Rekening</div><div class="modal-close" onclick="closeModal('rekening-modal')">✕</div></div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn-print" onclick="printRekening()">🖨 Afdrukken</button>
+      <button class="btn-leeg-modal" onclick="tafelLeegMaken()">🪑 Tafel leegmaken</button>
+      <button class="btn-sluiten" onclick="closeModal('rekening-modal')">Sluiten</button>
+    </div>
+  </div>
+</div>
+
+<div id="print-area"></div>
+<div id="toast"></div>
+
+<script>
+// ═══ CONFIG ═══
+const SB_URL='https://ouqqbrcstyhzoymrwvld.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91cXFicmNzdHloem95bXJ3dmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTM0NTMsImV4cCI6MjA5MjUyOTQ1M30.81i_ykk1fGRBR4NuPNWN-TWp7aUbiOlkzRJjrfcocBM';
+const H={apikey:SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+
+async function dbSelect(t,p){const r=await fetch(`${SB_URL}/rest/v1/${t}?${p||''}`,{headers:H});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbInsert(t,d){const r=await fetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());}
+async function dbUpdate(t,match,d){const[c,v]=Object.entries(match)[0];const r=await fetch(`${SB_URL}/rest/v1/${t}?${c}=eq.${v}`,{method:'PATCH',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());}
+async function dbDelete(t,match){const[c,v]=Object.entries(match)[0];const r=await fetch(`${SB_URL}/rest/v1/${t}?${c}=eq.${v}`,{method:'DELETE',headers:H});if(!r.ok)throw new Error(await r.text());}
+async function dbDeleteIn(t,c,vals){const r=await fetch(`${SB_URL}/rest/v1/${t}?${c}=in.(${vals.join(',')})`,{method:'DELETE',headers:H});if(!r.ok)throw new Error(await r.text());}
+
+// ═══ BTW ═══
+function exclBtw(incl,t){return incl/(1+t/100);}
+function btwBedrag(incl,t){return incl-exclBtw(incl,t);}
+function berekenBTW(items){
+  const b={6:{excl:0,btw:0,incl:0},12:{excl:0,btw:0,incl:0},21:{excl:0,btw:0,incl:0}};
+  items.forEach(i=>{const t=i.btw||21,tot=i.price*i.qty;if(b[t]){b[t].incl+=tot;b[t].excl+=exclBtw(tot,t);b[t].btw+=btwBedrag(tot,t);}});
+  return b;
+}
+
+// ═══ STATE ═══
+let orders=[],products=[],tables=[],settings={},history=[],activeRekeningTable=null;
+let prevNewCount=0;
+const BASE_URL=`https://${window.location.hostname}/klant.html`;
+
+// ═══ TOAST ═══
+function toast(msg,type='ok'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.borderColor=type==='err'?'var(--red)':'var(--border2)';
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ═══ PIN ═══
+let pinInput='';
+let correctPin='1234';
+
+function pinPress(d){
+  if(pinInput.length>=4)return;
+  pinInput+=d;
+  updatePinDots();
+  if(pinInput.length===4)setTimeout(checkPin,200);
+}
+function pinBack(){pinInput=pinInput.slice(0,-1);updatePinDots();}
+function pinClear(){pinInput='';updatePinDots();}
+function updatePinDots(){
+  for(let i=0;i<4;i++){
+    document.getElementById('d'+i).classList.toggle('filled',i<pinInput.length);
+  }
+}
+function checkPin(){
+  if(pinInput===correctPin){
+    document.getElementById('pin-screen').classList.add('hidden');
+    const app=document.getElementById('app');
+    app.style.display='flex';
+    init();
+  } else {
+    document.getElementById('pin-error').textContent='Verkeerde PIN. Probeer opnieuw.';
+    pinInput='';
+    updatePinDots();
+    setTimeout(()=>{document.getElementById('pin-error').textContent='';},2000);
+  }
+}
+function lockApp(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('pin-screen').classList.remove('hidden');
+  pinInput='';updatePinDots();
+}
+
+// ═══ INIT ═══
+async function init(){
+  try{
+    const[o,p,t,s,h]=await Promise.all([
+      dbSelect('orders','order=ts.desc'),
+      dbSelect('products','order=cat.asc'),
+      dbSelect('tables','order=num.asc'),
+      dbSelect('settings','id=eq.1'),
+      dbSelect('history','order=date.desc&limit=30')
+    ]);
+    orders=o;products=p;tables=t.map(r=>r.num);
+    settings=s[0]||{};history=h;
+    correctPin=settings.pin||'1234';
+    applyBranding();
+    loadSettings();
+    document.getElementById('live-status').textContent='Live · 2s';
+    renderOrders();renderAdmin();renderHistory();
+    updateClosedBanner();
+    setInterval(pollOrders,2000);
+    setInterval(async()=>{try{products=await dbSelect('products','order=cat.asc');renderAdmin();}catch(e){}},10000);
+    setInterval(async()=>{try{const d=await dbSelect('tables','order=num.asc');tables=d.map(r=>r.num);renderAdmin();renderTablesOverview();}catch(e){}},10000);
+    setInterval(async()=>{try{const s=await dbSelect('settings','id=eq.1');if(s[0]){settings=s[0];correctPin=settings.pin||'1234';applyBranding();updateClosedBanner();}}catch(e){}},15000);
+  }catch(err){
+    document.getElementById('live-status').textContent='❌ '+err.message;
+    console.error(err);
+  }
+}
+
+async function pollOrders(){
+  try{
+    const data=await dbSelect('orders','order=ts.desc');
+    const newCount=data.filter(o=>o.status==='nieuw').length;
+    if(newCount>prevNewCount&&prevNewCount>=0)flashNew();
+    prevNewCount=newCount;
+    orders=data;
+    renderOrders();
+    if(document.getElementById('tab-tafels-content').style.display!=='none')renderTablesOverview();
+    if(document.getElementById('tab-zrap-content').style.display!=='none')renderZRapport();
+  }catch(e){}
+}
+
+let flashT;
+function flashNew(){
+  const name=settings.cafe_name||'Taporder';
+  document.title='🔔 Nieuwe bestelling! — '+name;
+  clearTimeout(flashT);flashT=setTimeout(()=>{document.title=name+' — Bar Dashboard';},4000);
+}
+
+// ═══ BRANDING ═══
+function applyBranding(){
+  const name=settings.cafe_name||'Taporder';
+  const color=settings.accent_color||'#f5a623';
+  const emoji=settings.logo_emoji||'☕';
+  document.getElementById('nav-cafe-name').innerHTML=`${emoji} ${name} <small>bar</small>`;
+  document.getElementById('pin-cafe-name').textContent=emoji+' '+name;
+  document.title=name+' — Bar Dashboard';
+  document.documentElement.style.setProperty('--accent',color);
+}
+
+// ═══ OPEN/GESLOTEN ═══
+function updateClosedBanner(){
+  const banner=document.getElementById('closed-banner');
+  const isOpen=settings.is_open!==false;
+  banner.classList.toggle('hidden',isOpen);
+}
+async function toggleOpen(open){
+  try{
+    await dbUpdate('settings',{id:1},{is_open:open});
+    settings.is_open=open;
+    document.getElementById('s-open').checked=open;
+    updateClosedBanner();
+    toast(open?'Menu is nu open ✓':'Menu is gesloten');
+  }catch(e){toast('Fout: '+e.message,'err');}
+}
+
+// ═══ TABS ═══
+function showTab(tab){
+  ['orders','tafels','zrap','history','admin'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('tab-'+t+'-content').style.display=t===tab?'block':'none';
+  });
+  if(tab==='tafels')renderTablesOverview();
+  if(tab==='zrap')renderZRapport();
+  if(tab==='history')renderHistory();
+  if(tab==='admin')renderAdmin();
+}
+
+// ═══ RENDER ORDERS ═══
+function renderOrders(){
+  const newOrders=orders.filter(o=>o.status==='nieuw');
+  const doneOrders=orders.filter(o=>o.status==='afgerond');
+  const badge=document.getElementById('new-badge');
+  badge.style.display=newOrders.length>0?'inline':'none';badge.textContent=newOrders.length;
+  document.getElementById('new-count').textContent=newOrders.length;
+  document.getElementById('done-count').textContent=doneOrders.length;
+  const todayStart=new Date();todayStart.setHours(0,0,0,0);
+  const tod=orders.filter(o=>o.ts>=todayStart.getTime());
+  const online=tod.filter(o=>o.payment==='bancontact').reduce((a,b)=>a+Number(b.total),0);
+  const cash=tod.filter(o=>o.payment==='cash').reduce((a,b)=>a+Number(b.total),0);
+  document.getElementById('stats-row').innerHTML=`
+    <div class="stat-card green"><div class="stat-label">Online / Bancontact</div><div class="stat-val green">€${online.toFixed(2)}</div></div>
+    <div class="stat-card red"><div class="stat-label">Cash</div><div class="stat-val red">€${cash.toFixed(2)}</div></div>
+    <div class="stat-card amber"><div class="stat-label">Dagomzet incl. BTW</div><div class="stat-val amber">€${(online+cash).toFixed(2)}</div></div>
+    <div class="stat-card blue"><div class="stat-label">Bestellingen vandaag</div><div class="stat-val blue">${tod.length}</div></div>`;
+  document.getElementById('orders-new').innerHTML=newOrders.length===0
+    ?'<div class="empty-state"><div class="empty-icon">✓</div>Geen openstaande bestellingen</div>'
+    :newOrders.map(o=>orderCardHTML(o,false)).join('');
+  document.getElementById('orders-done').innerHTML=doneOrders.length===0
+    ?'<div class="empty-state" style="padding:1.5rem;font-size:.82rem">Nog geen afgeronde bestellingen</div>'
+    :doneOrders.slice(0,20).map(o=>orderCardHTML(o,true)).join('');
+}
+
+function parseItems(o){try{return typeof o.items==='string'?JSON.parse(o.items):(o.items||[]);}catch(e){return[];}}
+
+function orderCardHTML(o,done){
+  const isCash=o.payment==='cash';
+  const timeStr=new Date(Number(o.ts)).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'});
+  const items=parseItems(o);
+  const payBadge=isCash?'<span class="badge badge-red">● Cash</span>':'<span class="badge badge-green">✓ Bancontact</span>';
+  const statusBadge=done?'<span class="badge badge-blue">Afgerond</span>':'<span class="badge badge-amber">Nieuw</span>';
+  const itemsHTML=items.map(i=>`<div class="oc-item"><span><span class="oc-item-qty">${i.qty}×</span><span class="oc-item-name">${i.name}</span></span><span style="font-size:.82rem;color:var(--text3)">€${(i.price*i.qty).toFixed(2)}</span></div>`).join('');
+  const actions=done
+    ?`<button class="btn btn-del" onclick="deleteOrder(${o.id})">🗑</button>`
+    :`<button class="btn btn-check" onclick="completeOrder(${o.id})">✓ Klaar</button><button class="btn btn-del" onclick="deleteOrder(${o.id})">✕</button>`;
+  return `<div class="order-card ${isCash?'cash':'bancontact'} ${done?'done':''}">
+    <div class="oc-top"><div class="oc-table">Tafel ${o.table_num}</div><div class="oc-badges">${payBadge}${statusBadge}</div></div>
+    <div class="oc-items">${itemsHTML}</div>
+    <div class="oc-footer"><div><div class="oc-total">€${Number(o.total).toFixed(2)}</div><div class="oc-time">${timeStr}</div></div><div class="oc-actions">${actions}</div></div>
+  </div>`;
+}
+
+async function completeOrder(id){try{await dbUpdate('orders',{id},{status:'afgerond'});toast('Afgerond ✓');}catch(e){toast('Fout: '+e.message,'err');}}
+async function deleteOrder(id){try{await dbDelete('orders',{id});toast('Verwijderd');}catch(e){toast('Fout: '+e.message,'err');}}
+async function clearAllDone(){
+  const ids=orders.filter(o=>o.status==='afgerond').map(o=>o.id);
+  if(!ids.length){toast('Geen afgeronde bestellingen');return;}
+  try{await dbDeleteIn('orders','id',ids);toast(`${ids.length} gearchiveerd`);}catch(e){toast('Fout: '+e.message,'err');}
+}
+
+// ═══ TAFELS ═══
+function renderTablesOverview(){
+  const el=document.getElementById('tables-overview');if(!el)return;
+  el.innerHTML=tables.map(num=>{
+    const tafelOrders=orders.filter(o=>o.table_num===num);
+    const open=tafelOrders.filter(o=>o.status==='nieuw').length;
+    const totaal=tafelOrders.reduce((a,b)=>a+Number(b.total),0);
+    const bezet=tafelOrders.length>0;
+    return `<div class="table-status-card ${bezet?'bezet':''}">
+      <div class="ts-badge"><span class="ts-dot ${bezet?'bezet':''}"></span></div>
+      <div class="ts-num">Tafel ${num}</div>
+      <div class="ts-orders">${bezet?`${tafelOrders.length} bestelling${tafelOrders.length!==1?'en':''} · ${open} open`:'Leeg'}</div>
+      ${bezet?`<div class="ts-total">€${totaal.toFixed(2)}</div>`:''}
+      ${bezet?`<div class="ts-actions"><button class="btn-rekening" onclick="openRekening(${num})">🧾 Rekening</button><button class="btn-leeg" onclick="confirmLeeg(${num})">🪑 Leeg</button></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function getAllItemsForTable(num){
+  const tafelOrders=orders.filter(o=>o.table_num===num);
+  const allItems={};
+  tafelOrders.forEach(order=>{
+    parseItems(order).forEach(i=>{
+      const prod=products.find(p=>p.name===i.name);
+      const btwTarief=i.btw||(prod?prod.btw:21)||21;
+      if(allItems[i.name]){allItems[i.name].qty+=i.qty;allItems[i.name].subtotal+=i.price*i.qty;}
+      else allItems[i.name]={name:i.name,qty:i.qty,price:i.price,subtotal:i.price*i.qty,btw:btwTarief};
+    });
+  });
+  return{tafelOrders,itemsList:Object.values(allItems)};
+}
+
+function openRekening(num){
+  activeRekeningTable=num;
+  const{tafelOrders,itemsList}=getAllItemsForTable(num);
+  if(!tafelOrders.length){toast('Geen bestellingen','err');return;}
+  const totaalIncl=itemsList.reduce((a,b)=>a+b.subtotal,0);
+  const btwData=berekenBTW(itemsList);
+  const totaalBtw=Object.values(btwData).reduce((a,b)=>a+b.btw,0);
+  const totaalExcl=totaalIncl-totaalBtw;
+  const cash=tafelOrders.filter(o=>o.payment==='cash').reduce((a,b)=>a+Number(b.total),0);
+  const online=tafelOrders.filter(o=>o.payment==='bancontact').reduce((a,b)=>a+Number(b.total),0);
+  const now=new Date().toLocaleString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('modal-title').textContent=`Rekening — Tafel ${num}`;
+  document.getElementById('modal-body').innerHTML=`
+    <div style="margin-bottom:1rem;font-size:.8rem;color:var(--text3)">${now} · ${tafelOrders.length} bestelling${tafelOrders.length!==1?'en':''}</div>
+    ${itemsList.map(i=>`<div class="rekening-item"><span><span class="ri-qty">${i.qty}×</span><span class="ri-name">${i.name}</span><span class="btw-pill btw-${i.btw||21}">${i.btw||21}%</span></span><span>€${i.subtotal.toFixed(2)}</span></div>`).join('')}
+    <div class="rekening-total"><span class="rt-label">Totaal incl. BTW</span><span class="rt-val">€${totaalIncl.toFixed(2)}</span></div>
+    <div class="btw-block">
+      <div style="font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem">BTW-uitsplitsing</div>
+      ${[6,12,21].filter(t=>btwData[t].incl>0).map(t=>`<div class="btw-row"><span>${t}%</span><span>Excl: €${btwData[t].excl.toFixed(2)} · BTW: €${btwData[t].btw.toFixed(2)} · Incl: €${btwData[t].incl.toFixed(2)}</span></div>`).join('')}
+      <div class="btw-row total"><span>Excl. BTW</span><span>€${totaalExcl.toFixed(2)}</span></div>
+      <div class="btw-row total"><span>Totaal BTW</span><span>€${totaalBtw.toFixed(2)}</span></div>
+    </div>
+    ${(cash>0||online>0)?`<div class="btw-block" style="margin-top:.6rem">
+      <div style="font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem">Betaalmethode</div>
+      ${online>0?`<div class="btw-row"><span>✓ Bancontact betaald</span><span style="color:var(--green);font-weight:600">€${online.toFixed(2)}</span></div>`:''}
+      ${cash>0?`<div class="btw-row"><span>● Cash te betalen</span><span style="color:var(--red);font-weight:600">€${cash.toFixed(2)}</span></div>`:''}
+    </div>`:''}`;
+  document.getElementById('rekening-modal').classList.add('open');
+}
+
+function closeModal(id){document.getElementById(id).classList.remove('open');if(id==='rekening-modal')activeRekeningTable=null;}
+function closeModalIf(e,id){if(e.target.id===id)closeModal(id);}
+function confirmLeeg(num){if(!confirm(`Tafel ${num} leegmaken?`))return;tafelLeegMakenNum(num);}
+function tafelLeegMaken(){if(!activeRekeningTable)return;if(!confirm(`Tafel ${activeRekeningTable} leegmaken?`))return;tafelLeegMakenNum(activeRekeningTable);closeModal('rekening-modal');}
+async function tafelLeegMakenNum(num){
+  const ids=orders.filter(o=>o.table_num===num).map(o=>o.id);
+  if(!ids.length){toast('Tafel was al leeg');return;}
+  try{await dbDeleteIn('orders','id',ids);toast(`Tafel ${num} leeggemaakt 🪑`);}catch(e){toast('Fout: '+e.message,'err');}
+}
+
+// ═══ PRINT REKENING ═══
+function printRekening(){
+  if(!activeRekeningTable)return;
+  const num=activeRekeningTable;
+  const{tafelOrders,itemsList}=getAllItemsForTable(num);
+  const totaalIncl=itemsList.reduce((a,b)=>a+b.subtotal,0);
+  const btwData=berekenBTW(itemsList);
+  const totaalBtw=Object.values(btwData).reduce((a,b)=>a+b.btw,0);
+  const totaalExcl=totaalIncl-totaalBtw;
+  const cash=tafelOrders.filter(o=>o.payment==='cash').reduce((a,b)=>a+Number(b.total),0);
+  const online=tafelOrders.filter(o=>o.payment==='bancontact').reduce((a,b)=>a+Number(b.total),0);
+  const now=new Date().toLocaleString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const cafeName=settings.cafe_name||'Taporder';
+  const footer=settings.footer_msg||'Bedankt voor uw bezoek!';
+  const btwL={6:'A',12:'B',21:'C'};
+  const html=`<div style="background:#fff;color:#111;font-family:Arial,sans-serif;font-size:10pt;max-width:420px;margin:0 auto">
+    <div style="border-bottom:2px solid #000;padding-bottom:4mm;margin-bottom:4mm;text-align:center">
+      <div style="font-size:18pt;font-weight:900">${cafeName}</div>
+      <div style="font-size:9pt;font-weight:700;margin-top:2mm;text-transform:uppercase">Rekening — Tafel ${num}</div>
+      <div style="font-size:8pt;color:#555">${now} · ${tafelOrders.length} bestelling${tafelOrders.length!==1?'en':''}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:9.5pt;margin-bottom:4mm">
+      <thead><tr style="border-bottom:1px solid #000">
+        <th style="text-align:left;padding:1.5mm 1mm;font-size:8pt">Omschrijving</th>
+        <th style="text-align:center;padding:1.5mm 1mm;font-size:8pt;width:25px">Aant.</th>
+        <th style="text-align:right;padding:1.5mm 1mm;font-size:8pt;width:50px">E.prijs</th>
+        <th style="text-align:center;padding:1.5mm 1mm;font-size:8pt;width:20px">Cd</th>
+        <th style="text-align:right;padding:1.5mm 1mm;font-size:8pt;width:55px">Totaal</th>
+      </tr></thead>
+      <tbody>${itemsList.map(i=>`<tr style="border-bottom:1px solid #eee">
+        <td style="padding:1.5mm 1mm">${i.name}</td>
+        <td style="text-align:center;padding:1.5mm 1mm;color:#444">${i.qty}</td>
+        <td style="text-align:right;padding:1.5mm 1mm;color:#444">€${i.price.toFixed(2)}</td>
+        <td style="text-align:center;padding:1.5mm 1mm;font-size:7.5pt;font-weight:700">${btwL[i.btw||21]||'C'}</td>
+        <td style="text-align:right;padding:1.5mm 1mm;font-weight:600">€${i.subtotal.toFixed(2)}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+    <div style="border-top:1px solid #000;margin-bottom:4mm">
+      <table style="width:100%;border-collapse:collapse;font-size:9pt">
+        <tr><td style="padding:1.5mm 1mm;color:#555">Totaal excl. BTW</td><td style="text-align:right;color:#555">€ ${totaalExcl.toFixed(2)}</td></tr>
+        <tr><td style="padding:1.5mm 1mm;color:#555">Totale BTW</td><td style="text-align:right;color:#555">€ ${totaalBtw.toFixed(2)}</td></tr>
+        <tr style="border-top:2px solid #000;background:#f0f0f0">
+          <td style="padding:2.5mm 1mm;font-weight:700;font-size:12pt">TOTAAL INCL. BTW</td>
+          <td style="text-align:right;font-weight:900;font-size:14pt">€ ${totaalIncl.toFixed(2)}</td>
+        </tr>
+      </table>
+    </div>
+    <div style="margin-bottom:4mm;font-size:8.5pt">
+      <div style="font-size:7pt;font-weight:700;text-transform:uppercase;border-bottom:1px solid #000;padding-bottom:0.5mm;margin-bottom:2mm">BTW-detail (A=6% · B=12% · C=21%)</div>
+      <table style="width:100%;border-collapse:collapse;font-size:8pt">
+        <thead><tr style="background:#eee"><th style="padding:1mm;text-align:left">Code</th><th style="padding:1mm;text-align:left">Tarief</th><th style="padding:1mm;text-align:right">Excl.</th><th style="padding:1mm;text-align:right">BTW</th><th style="padding:1mm;text-align:right">Incl.</th></tr></thead>
+        <tbody>${[6,12,21].filter(t=>btwData[t].incl>0).map(t=>`<tr style="border-bottom:1px solid #eee">
+          <td style="padding:1mm;font-weight:700">${btwL[t]}</td><td style="padding:1mm">${t}%</td>
+          <td style="padding:1mm;text-align:right">€${btwData[t].excl.toFixed(2)}</td>
+          <td style="padding:1mm;text-align:right">€${btwData[t].btw.toFixed(2)}</td>
+          <td style="padding:1mm;text-align:right">€${btwData[t].incl.toFixed(2)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>
+    ${(cash>0||online>0)?`<div style="border:1px solid #000;padding:2.5mm;margin-bottom:4mm;font-size:9pt">
+      <div style="font-size:7pt;font-weight:700;text-transform:uppercase;margin-bottom:1.5mm">Betaalmethode</div>
+      ${online>0?`<div style="display:flex;justify-content:space-between"><span>✓ Bancontact / Online betaald</span><span style="font-weight:700">€ ${online.toFixed(2)}</span></div>`:''}
+      ${cash>0?`<div style="display:flex;justify-content:space-between"><span>● Cash te betalen aan de bar</span><span style="font-weight:700">€ ${cash.toFixed(2)}</span></div>`:''}
+    </div>`:''}
+    <div style="border-top:1px solid #000;padding-top:2mm;font-size:7.5pt;color:#555;text-align:center">${footer}<br><em>Dit ticket is geen officieel GKS-kassaticket.</em></div>
+  </div>`;
+  const w=window.open('','_blank','width=600,height=800');
+  w.document.write(`<html><head><meta charset="UTF-8"><title>Rekening Tafel ${num}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;padding:15mm}@page{margin:12mm;size:A4}@media print{body{padding:0}}</style></head><body>${html}</body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+
+// ═══ Z-RAPPORT ═══
+function getZData(){
+  const todayStart=new Date();todayStart.setHours(0,0,0,0);
+  const tod=orders.filter(o=>o.ts>=todayStart.getTime());
+  const allItems=[];
+  tod.forEach(order=>{parseItems(order).forEach(i=>{const prod=products.find(p=>p.name===i.name);allItems.push({...i,btw:i.btw||(prod?prod.btw:21)||21});});});
+  const btwData=berekenBTW(allItems);
+  const totaalIncl=Object.values(btwData).reduce((a,b)=>a+b.incl,0);
+  const totaalBtw=Object.values(btwData).reduce((a,b)=>a+b.btw,0);
+  const totaalExcl=totaalIncl-totaalBtw;
+  const online=tod.filter(o=>o.payment==='bancontact').reduce((a,b)=>a+Number(b.total),0);
+  const cash=tod.filter(o=>o.payment==='cash').reduce((a,b)=>a+Number(b.total),0);
+  const counts={};
+  tod.forEach(o=>{parseItems(o).forEach(i=>{counts[i.name]=(counts[i.name]||0)+i.qty;});});
+  return{tod,btwData,totaalIncl,totaalBtw,totaalExcl,online,cash,counts};
+}
+
+function renderZRapport(){
+  const el=document.getElementById('zrap-content');if(!el)return;
+  const{tod,btwData,totaalIncl,totaalBtw,totaalExcl,online,cash,counts}=getZData();
+  const datum=new Date().toLocaleDateString('nl-BE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const now=new Date().toLocaleString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  el.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div class="stat-card amber"><div class="stat-label">Omzet incl. BTW</div><div class="stat-val amber">€${totaalIncl.toFixed(2)}</div></div>
+      <div class="stat-card purple"><div class="stat-label">Omzet excl. BTW</div><div class="stat-val purple">€${totaalExcl.toFixed(2)}</div></div>
+      <div class="stat-card red"><div class="stat-label">Totale BTW</div><div class="stat-val red">€${totaalBtw.toFixed(2)}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem">
+      <div class="card"><div class="card-title">Betaalmethodes</div>
+        <div class="zrap-row" style="color:var(--green)"><span>Bancontact / Online</span><span>€${online.toFixed(2)}</span></div>
+        <div class="zrap-row" style="color:var(--red)"><span>Cash</span><span>€${cash.toFixed(2)}</span></div>
+        <div class="zrap-row total"><span>Totaal incl. BTW</span><span>€${totaalIncl.toFixed(2)}</span></div>
+      </div>
+      <div class="card"><div class="card-title">BTW-uitsplitsing (A/B/C)</div>
+        ${[6,12,21].map(t=>`<div class="zrap-btw-row"><span style="font-weight:600;color:${t===6?'var(--green)':t===12?'var(--accent)':'var(--red)'}">${t===6?'A':t===12?'B':'C'} · ${t}%</span><span style="color:var(--text2)">€${btwData[t].excl.toFixed(2)}</span><span style="color:var(--accent)">€${btwData[t].btw.toFixed(2)}</span><span>€${btwData[t].incl.toFixed(2)}</span></div>`).join('')}
+        <div class="zrap-row total"><span>Totaal BTW</span><span>€${totaalBtw.toFixed(2)}</span></div>
+      </div>
+      <div class="card"><div class="card-title">Dagoverzicht</div>
+        <div class="zrap-row"><span>Datum</span><span style="color:var(--text2)">${datum}</span></div>
+        <div class="zrap-row"><span>Tijdstip rapport</span><span style="color:var(--text2)">${now}</span></div>
+        <div class="zrap-row"><span>Bestellingen</span><span style="color:var(--text2)">${tod.length}</span></div>
+        <div class="zrap-row"><span>Gemiddeld</span><span style="color:var(--text2)">€${tod.length?(totaalIncl/tod.length).toFixed(2):'0.00'}</span></div>
+      </div>
+      <div class="card"><div class="card-title">Top producten vandaag</div>
+        ${top.length?top.map(([n,q])=>`<div class="zrap-row"><span>${n}</span><span style="color:var(--accent);font-weight:600">${q}×</span></div>`).join(''):'<div style="color:var(--text3);font-size:.85rem;padding:.5rem 0">Nog geen verkopen</div>'}
+      </div>
+    </div>`;
+}
+
+function printZRapport(){
+  const{tod,btwData,totaalIncl,totaalBtw,totaalExcl,online,cash}=getZData();
+  const now=new Date().toLocaleString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const datum=new Date().toLocaleDateString('nl-BE',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  const cafeName=settings.cafe_name||'Taporder';
+  const btwL={6:'A',12:'B',21:'C'};
+  const html=`<div style="background:#fff;color:#111;font-family:Arial,sans-serif;font-size:11pt;max-width:700px;margin:0 auto">
+    <div style="border-bottom:3px solid #000;padding-bottom:6mm;margin-bottom:6mm">
+      <table style="width:100%;border-collapse:collapse"><tr>
+        <td style="vertical-align:top"><div style="font-size:22pt;font-weight:900">${cafeName}</div><div style="font-size:9pt;color:#555">Café bestelsysteem</div></td>
+        <td style="text-align:right;vertical-align:top">
+          <div style="font-size:14pt;font-weight:700;text-transform:uppercase">Z-Rapport</div>
+          <div style="font-size:9pt;color:#555">Dagafsluiting / Clôture journalière</div>
+          <div style="font-size:9pt;margin-top:1mm"><strong>${datum}</strong></div>
+          <div style="font-size:8pt;color:#777">Afgedrukt: ${now}</div>
+        </td>
+      </tr></table>
+    </div>
+    <div style="margin-bottom:5mm">
+      <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;border-bottom:1px solid #000;padding-bottom:1mm;margin-bottom:3mm">1. Dagomzet</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10pt">
+        <tr style="background:#f0f0f0"><td style="padding:2mm 3mm;font-weight:700">Omzet incl. BTW</td><td style="padding:2mm 3mm;text-align:right;font-weight:700;font-size:13pt">€ ${totaalIncl.toFixed(2)}</td></tr>
+        <tr><td style="padding:1.5mm 3mm;border-bottom:1px solid #ddd">Omzet excl. BTW</td><td style="padding:1.5mm 3mm;text-align:right;border-bottom:1px solid #ddd">€ ${totaalExcl.toFixed(2)}</td></tr>
+        <tr><td style="padding:1.5mm 3mm;border-bottom:1px solid #ddd">Totale BTW</td><td style="padding:1.5mm 3mm;text-align:right;border-bottom:1px solid #ddd">€ ${totaalBtw.toFixed(2)}</td></tr>
+        <tr><td style="padding:1.5mm 3mm;border-bottom:1px solid #ddd">Aantal bestellingen</td><td style="padding:1.5mm 3mm;text-align:right;border-bottom:1px solid #ddd">${tod.length}</td></tr>
+        <tr><td style="padding:1.5mm 3mm">Gemiddelde bestelling</td><td style="padding:1.5mm 3mm;text-align:right">€ ${tod.length?(totaalIncl/tod.length).toFixed(2):'0.00'}</td></tr>
+      </table>
+    </div>
+    <div style="margin-bottom:5mm">
+      <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;border-bottom:1px solid #000;padding-bottom:1mm;margin-bottom:3mm">2. Betaalmethodes</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10pt">
+        <tr><td style="padding:1.5mm 3mm;border-bottom:1px solid #ddd">Bancontact / Online</td><td style="padding:1.5mm 3mm;text-align:right;border-bottom:1px solid #ddd;font-weight:600">€ ${online.toFixed(2)}</td></tr>
+        <tr><td style="padding:1.5mm 3mm;border-bottom:1px solid #ddd">Cash</td><td style="padding:1.5mm 3mm;text-align:right;border-bottom:1px solid #ddd;font-weight:600">€ ${cash.toFixed(2)}</td></div></tr>
+        <tr style="background:#f0f0f0"><td style="padding:2mm 3mm;font-weight:700">TOTAAL</td><td style="padding:2mm 3mm;text-align:right;font-weight:700">€ ${totaalIncl.toFixed(2)}</td></tr>
+      </table>
+    </div>
+    <div style="margin-bottom:5mm">
+      <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#555;border-bottom:1px solid #000;padding-bottom:1mm;margin-bottom:3mm">3. BTW-uitsplitsing per tarief</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10pt">
+        <thead><tr style="background:#000;color:#fff"><th style="padding:2mm 3mm;text-align:left">Code</th><th style="padding:2mm 3mm;text-align:left">Tarief</th><th style="padding:2mm 3mm;text-align:right">Maatstaf excl.</th><th style="padding:2mm 3mm;text-align:right">BTW-bedrag</th><th style="padding:2mm 3mm;text-align:right">Totaal incl.</th></tr></thead>
+        <tbody>
+          ${[6,12,21].map(t=>`<tr style="border-bottom:1px solid #ddd${btwData[t].incl===0?';color:#bbb':''}"><td style="padding:2mm 3mm;font-weight:700">${btwL[t]}</td><td style="padding:2mm 3mm">${t}%</td><td style="padding:2mm 3mm;text-align:right">€ ${btwData[t].excl.toFixed(2)}</td><td style="padding:2mm 3mm;text-align:right">€ ${btwData[t].btw.toFixed(2)}</td><td style="padding:2mm 3mm;text-align:right">€ ${btwData[t].incl.toFixed(2)}</td></tr>`).join('')}
+        </tbody>
+        <tfoot><tr style="background:#000;color:#fff;font-weight:700"><td style="padding:2mm 3mm" colspan="2">TOTAAL</td><td style="padding:2mm 3mm;text-align:right">€ ${totaalExcl.toFixed(2)}</td><td style="padding:2mm 3mm;text-align:right">€ ${totaalBtw.toFixed(2)}</td><td style="padding:2mm 3mm;text-align:right">€ ${totaalIncl.toFixed(2)}</td></tr></tfoot>
+      </table>
+      <div style="font-size:8pt;color:#555;margin-top:2mm">A = 6% (voeding/eten) · B = 12% (warme dranken/restaurant) · C = 21% (alcohol/frisdranken)</div>
+    </div>
+    <div style="margin-bottom:5mm;border:1px solid #000;padding:4mm">
+      <div style="font-size:8pt;font-weight:700;text-transform:uppercase;margin-bottom:3mm">4. Bewaring en handtekening</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:5mm;font-size:9pt">
+        <div><div style="color:#555;margin-bottom:1mm">Bewaren conform art. 60 BTW-Wetboek (min. 7 jaar).</div><div style="margin-top:3mm;border-top:1px solid #000;padding-top:2mm">Datum: ${now}</div></div>
+        <div><div style="height:15mm;border-bottom:1px solid #000;margin-bottom:1mm"></div><div style="font-size:8pt;color:#555;text-align:center">Handtekening verantwoordelijke</div></div>
+      </div>
+    </div>
+    <div style="border-top:1px solid #000;padding-top:3mm;font-size:8pt;color:#555;text-align:center"><strong>${cafeName}</strong> — Z-Rapport · ${datum}<br><em>Dit rapport is geen gecertificeerd GKS-document. Gebruik als aanvulling bij uw officiële witte kassa.</em></div>
+  </div>`;
+  const w=window.open('','_blank','width=900,height=1100');
+  w.document.write(`<html><head><meta charset="UTF-8"><title>Z-Rapport ${datum}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;padding:15mm}@page{margin:12mm 15mm;size:A4}@media print{body{padding:0}}</style></head><body>${html}</body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+
+// ═══ CSV EXPORT ═══
+function exportCSV(){
+  const{tod,btwData,totaalIncl,totaalBtw,totaalExcl,online,cash}=getZData();
+  const datum=new Date().toLocaleDateString('nl-BE');
+  let csv='Datum;Omschrijving;Excl BTW;BTW;Incl BTW\n';
+  csv+=`${datum};Omzet tarief A (6%);${btwData[6].excl.toFixed(2)};${btwData[6].btw.toFixed(2)};${btwData[6].incl.toFixed(2)}\n`;
+  csv+=`${datum};Omzet tarief B (12%);${btwData[12].excl.toFixed(2)};${btwData[12].btw.toFixed(2)};${btwData[12].incl.toFixed(2)}\n`;
+  csv+=`${datum};Omzet tarief C (21%);${btwData[21].excl.toFixed(2)};${btwData[21].btw.toFixed(2)};${btwData[21].incl.toFixed(2)}\n`;
+  csv+=`${datum};TOTAAL;${totaalExcl.toFixed(2)};${totaalBtw.toFixed(2)};${totaalIncl.toFixed(2)}\n`;
+  csv+=`${datum};Bancontact/Online;;;${online.toFixed(2)}\n`;
+  csv+=`${datum};Cash;;;${cash.toFixed(2)}\n`;
+  csv+=`${datum};Aantal bestellingen;;;${tod.length}\n`;
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`z-rapport-${datum.replace(/\//g,'-')}.csv`;a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV gedownload ✓');
+}
+
+// ═══ DAG AFSLUITING ═══
+async function dagAfsluiting(){
+  if(!confirm('Dag afsluiten?\n\n1. Z-rapport wordt opgeslagen in historiek\n2. Alle afgeronde bestellingen worden verwijderd\n\nPrint eerst het Z-rapport als je dat nog niet gedaan hebt!'))return;
+  const{tod,btwData,totaalIncl,totaalBtw,totaalExcl,online,cash}=getZData();
+  const datum=new Date().toLocaleDateString('nl-BE');
+  try{
+    // Sla op in historiek
+    await dbInsert('history',{
+      date:datum,total_incl:totaalIncl,total_excl:totaalExcl,total_btw:totaalBtw,
+      total_cash:cash,total_online:online,orders_count:tod.length,
+      btw_6_excl:btwData[6].excl,btw_6_btw:btwData[6].btw,btw_6_incl:btwData[6].incl,
+      btw_12_excl:btwData[12].excl,btw_12_btw:btwData[12].btw,btw_12_incl:btwData[12].incl,
+      btw_21_excl:btwData[21].excl,btw_21_btw:btwData[21].btw,btw_21_incl:btwData[21].incl
+    });
+    // Verwijder afgeronde bestellingen
+    const ids=orders.filter(o=>o.status==='afgerond'&&o.ts>=new Date().setHours(0,0,0,0)).map(o=>o.id);
+    if(ids.length)await dbDeleteIn('orders','id',ids);
+    // Herlaad historiek
+    const h=await dbSelect('history','order=date.desc&limit=30');
+    history=h;renderHistory();
+    toast(`Dag afgesloten ✓ — opgeslagen in historiek`);
+  }catch(e){toast('Fout: '+e.message,'err');}
+}
+
+// ═══ HISTORIEK ═══
+function renderHistory(){
+  const el=document.getElementById('history-grid');if(!el)return;
+  if(!history.length){el.innerHTML='<div style="color:var(--text3);font-size:.85rem;grid-column:1/-1;padding:2rem;text-align:center">Nog geen gearchiveerde dagrapporten.<br>Sluit de dag af via Z-Rapport → Dag afsluiten.</div>';return;}
+  el.innerHTML=history.map(h=>`
+    <div class="history-card">
+      <div class="hc-date">📅 ${h.date}</div>
+      <div class="hc-row"><span>Omzet incl. BTW</span><span class="hc-total">€${Number(h.total_incl).toFixed(2)}</span></div>
+      <div class="hc-row"><span>Bancontact</span><span style="color:var(--green)">€${Number(h.total_online).toFixed(2)}</span></div>
+      <div class="hc-row"><span>Cash</span><span style="color:var(--red)">€${Number(h.total_cash).toFixed(2)}</span></div>
+      <div class="hc-row"><span>Totale BTW</span><span>€${Number(h.total_btw).toFixed(2)}</span></div>
+      <div class="hc-row"><span>Bestellingen</span><span>${h.orders_count}</span></div>
+      <div class="hc-row" style="border:none;margin-top:.5rem">
+        <button class="btn-add" style="font-size:.75rem;padding:.3rem .6rem" onclick="exportHistoryDayCSV(${JSON.stringify(h).replace(/"/g,'&quot;')})">📥 CSV</button>
+      </div>
+    </div>`).join('');
+}
+
+function exportHistoryCSV(){
+  if(!history.length){toast('Geen historiek beschikbaar','err');return;}
+  let csv='Datum;Omzet incl BTW;Omzet excl BTW;Totale BTW;Bancontact;Cash;Bestellingen;BTW 6% excl;BTW 6% btw;BTW 6% incl;BTW 12% excl;BTW 12% btw;BTW 12% incl;BTW 21% excl;BTW 21% btw;BTW 21% incl\n';
+  history.forEach(h=>{
+    csv+=`${h.date};${Number(h.total_incl).toFixed(2)};${Number(h.total_excl).toFixed(2)};${Number(h.total_btw).toFixed(2)};${Number(h.total_online).toFixed(2)};${Number(h.total_cash).toFixed(2)};${h.orders_count};${Number(h.btw_6_excl).toFixed(2)};${Number(h.btw_6_btw).toFixed(2)};${Number(h.btw_6_incl).toFixed(2)};${Number(h.btw_12_excl).toFixed(2)};${Number(h.btw_12_btw).toFixed(2)};${Number(h.btw_12_incl).toFixed(2)};${Number(h.btw_21_excl).toFixed(2)};${Number(h.btw_21_btw).toFixed(2)};${Number(h.btw_21_incl).toFixed(2)}\n`;
+  });
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='historiek-taporder.csv';a.click();URL.revokeObjectURL(url);
+  toast('Historiek geëxporteerd ✓');
+}
+
+function exportHistoryDayCSV(h){
+  let csv='Datum;Omzet incl BTW;Omzet excl BTW;Totale BTW;Bancontact;Cash;Bestellingen\n';
+  csv+=`${h.date};${Number(h.total_incl).toFixed(2)};${Number(h.total_excl).toFixed(2)};${Number(h.total_btw).toFixed(2)};${Number(h.total_online).toFixed(2)};${Number(h.total_cash).toFixed(2)};${h.orders_count}\n`;
+  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=`rapport-${h.date.replace(/\//g,'-')}.csv`;a.click();URL.revokeObjectURL(url);
+  toast('CSV gedownload ✓');
+}
+
+// ═══ ADMIN ═══
+function renderAdmin(){renderProductList();renderTablesList();renderQRList();}
+
+function renderProductList(){
+  const el=document.getElementById('product-list');
+  if(!products.length){el.innerHTML='<div style="color:var(--text3);font-size:.85rem;padding:.5rem 0">Geen producten.</div>';return;}
+  el.innerHTML=products.map(p=>`<div class="admin-row">
+    <div>
+      <div class="ar-name">${p.emoji||''} ${p.name} <span class="btw-pill btw-${p.btw||21}">${p.btw||21}% BTW</span></div>
+      <div class="ar-sub">${p.cat}${p.allergens?` · ⚠ ${p.allergens}`:''}</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:.5rem">
+      <span class="ar-price">€${Number(p.price).toFixed(2)}</span>
+      <div class="ar-actions">
+        <div class="icon-btn" onclick="editPrice('${p.id}','${p.name}',${p.price})">✏</div>
+        <div class="icon-btn danger" onclick="deleteProduct('${p.id}')">✕</div>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+function toggleForm(id){document.getElementById(id).classList.toggle('open');}
+
+async function saveProduct(){
+  const name=document.getElementById('f-name').value.trim();
+  const price=parseFloat(document.getElementById('f-price').value);
+  const cat=document.getElementById('f-cat').value;
+  const btw=parseInt(document.getElementById('f-btw').value);
+  const emoji=document.getElementById('f-emoji').value.trim()||'🍽';
+  const description=document.getElementById('f-desc').value.trim();
+  const checkedAllergens=[...document.querySelectorAll('#allergen-checkboxes input:checked')].map(c=>c.value);
+  const allergens=checkedAllergens.join(', ');
+  if(!name||isNaN(price)){toast('Vul naam en prijs in','err');return;}
+  try{
+    await dbInsert('products',{name,price,cat,btw,emoji,description,allergens});
+    ['f-name','f-price','f-emoji','f-desc'].forEach(f=>document.getElementById(f).value='');
+    document.querySelectorAll('#allergen-checkboxes input').forEach(c=>c.checked=false);
+    document.getElementById('prod-form').classList.remove('open');
+    toast('Product toegevoegd ✓');
+  }catch(e){toast('Fout: '+e.message,'err');}
+}
+
+async function deleteProduct(id){
+  if(!confirm('Product verwijderen?'))return;
+  try{await dbDelete('products',{id});toast('Product verwijderd');}catch(e){toast('Fout: '+e.message,'err');}
+}
+
+async function editPrice(id,name,currentPrice){
+  const newPrice=prompt(`Nieuwe prijs voor "${name}":`,Number(currentPrice).toFixed(2));
+  if(newPrice===null)return;
+  const parsed=parseFloat(newPrice);
+  if(isNaN(parsed)||parsed<0){toast('Ongeldige prijs','err');return;}
+  try{await dbUpdate('products',{id},{price:parsed});toast('Prijs bijgewerkt ✓');}catch(e){toast('Fout: '+e.message,'err');}
+}
+
+function renderTablesList(){
+  const el=document.getElementById('tables-list');
+  if(!tables.length){el.innerHTML='<div style="color:var(--text3);font-size:.85rem;padding:.5rem 0">Geen tafels</div>';return;}
+  el.innerHTML=tables.map(t=>`<div class="admin-row">
+    <div class="ar-name" style="font-family:'Syne',sans-serif;font-weight:700">Tafel ${t}</div>
+    <div class="icon-btn danger" onclick="deleteTable(${t})">✕</div>
+  </div>`).join('');
+}
+
+async function addTable(){
+  const next=tables.length>0?Math.max(...tables)+1:1;
+  try{await dbInsert('tables',{num:next});toast(`Tafel ${next} toegevoegd`);}catch(e){toast('Fout: '+e.message,'err');}
+}
+
+async function deleteTable(num){
+  try{await dbDelete('tables',{num});toast(`Tafel ${num} verwijderd`);}catch(e){toast('Fout: '+e.message,'err');}
+}
+
+function renderQRList(){
+  document.getElementById('qr-list').innerHTML=tables.map(t=>{
+    const url=`${BASE_URL}?tafel=${t}`;
+    return `<div class="qr-item"><div class="qr-thumb">🪑</div><div class="qr-info"><div class="qr-name">Tafel ${t}</div><div class="qr-url">${url}</div></div><button class="qr-copy" onclick="copyURL('${url}')">Kopieer</button></div>`;
+  }).join('');
+}
+
+function copyURL(url){navigator.clipboard.writeText(url).then(()=>toast('Link gekopieerd ✓'));}
+
+// ═══ INSTELLINGEN ═══
+function loadSettings(){
+  if(!settings)return;
+  document.getElementById('s-name').value=settings.cafe_name||'';
+  document.getElementById('s-subtitle').value=settings.cafe_subtitle||'';
+  document.getElementById('s-emoji').value=settings.logo_emoji||'☕';
+  document.getElementById('s-color').value=settings.accent_color||'#f5a623';
+  document.getElementById('s-footer').value=settings.footer_msg||'';
+  document.getElementById('s-pin').value='';
+  // mollie_key wordt beheerd via Netlify Environment Variables
+  document.getElementById('s-lang').value=settings.language||'nl';
+  document.getElementById('s-open').checked=settings.is_open!==false;
+  document.getElementById('s-closed-msg').value=settings.closed_message||'';
+}
+
+async function saveSettings(){
+  const pin=document.getElementById('s-pin').value;
+  if(pin&&(pin.length!==4||!/^\d{4}$/.test(pin))){toast('PIN moet 4 cijfers zijn','err');return;}
+  const data={
+    cafe_name:document.getElementById('s-name').value.trim()||'Taporder',
+    cafe_subtitle:document.getElementById('s-subtitle').value.trim(),
+    logo_emoji:document.getElementById('s-emoji').value.trim()||'☕',
+    accent_color:document.getElementById('s-color').value.trim()||'#f5a623',
+    footer_msg:document.getElementById('s-footer').value.trim(),
+    // mollie_key: beheerd via Netlify Environment Variables (niet hier opslaan)
+    language:document.getElementById('s-lang').value,
+    is_open:document.getElementById('s-open').checked,
+    closed_message:document.getElementById('s-closed-msg').value.trim()
+  };
+  if(pin)data.pin=pin;
+  try{
+    await dbUpdate('settings',{id:1},data);
+    Object.assign(settings,data);
+    if(pin){correctPin=pin;document.getElementById('s-pin').value='';}
+    applyBranding();updateClosedBanner();
+    toast('Instellingen opgeslagen ✓');
+  }catch(e){toast('Fout: '+e.message,'err');}
+}
+
+// ═══ START ═══
+// Laad café naam voor PIN scherm
+(async()=>{
+  try{
+    const s=await dbSelect('settings','id=eq.1');
+    if(s[0]){
+      settings=s[0];
+      correctPin=s[0].pin||'1234';
+      const name=(s[0].logo_emoji||'☕')+' '+(s[0].cafe_name||'Taporder');
+      document.getElementById('pin-cafe-name').textContent=name;
+    }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>

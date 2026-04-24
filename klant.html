@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Bestel</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#080810;--bg2:#0f0f1a;--bg3:#16161f;--bg4:#1e1e2a;--bg5:#252535;
+  --accent:#f5a623;--green:#00c896;--red:#ff4757;
+  --text:#f2efe8;--text2:#9e9b94;--text3:#5a5855;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --r:16px;--r2:10px;
+}
+html{background:var(--bg)}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;padding-bottom:120px}
+
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:1rem 1.25rem;position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.35rem;color:var(--accent)}
+.table-pill{background:var(--bg4);border:1px solid var(--border2);border-radius:20px;padding:.3rem .8rem;font-size:.8rem;color:var(--text2);font-weight:500;cursor:pointer}
+.table-pill strong{color:var(--accent)}
+
+.lang-bar{display:flex;gap:.35rem;padding:.6rem 1.25rem;background:var(--bg2);border-bottom:1px solid var(--border)}
+.lang-btn{background:var(--bg4);border:1px solid var(--border);border-radius:20px;padding:.25rem .65rem;font-size:.75rem;color:var(--text3);cursor:pointer;transition:.15s}
+.lang-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+
+.cat-scroll{display:flex;gap:.5rem;padding:1rem 1.25rem;overflow-x:auto;scrollbar-width:none}
+.cat-scroll::-webkit-scrollbar{display:none}
+.cat-btn{flex-shrink:0;background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:.4rem .9rem;font-family:'Outfit',sans-serif;font-size:.82rem;font-weight:500;color:var(--text2);cursor:pointer;transition:.2s;white-space:nowrap}
+.cat-btn.active{background:var(--accent);border-color:var(--accent);color:#000}
+
+.section-head{padding:.25rem 1.25rem .5rem;font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
+.product-list{padding:0 1rem}
+.product-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:1rem;margin-bottom:.6rem;display:flex;align-items:center;gap:1rem;transition:border-color .2s}
+.product-card.in-cart{border-color:rgba(245,166,35,.35)}
+.product-emoji{font-size:2rem;width:52px;height:52px;background:var(--bg4);border-radius:var(--r2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.product-info{flex:1;min-width:0}
+.product-name{font-weight:600;font-size:.95rem;margin-bottom:.2rem}
+.product-desc{font-size:.78rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.product-price{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:var(--accent);margin-top:.25rem}
+.allergen-tag{display:inline-block;background:rgba(255,165,0,.1);border:1px solid rgba(255,165,0,.25);color:#ffa500;font-size:.68rem;padding:1px 6px;border-radius:4px;margin-top:.2rem}
+.qty-ctrl{display:flex;align-items:center;gap:.4rem;flex-shrink:0}
+.qty-btn{width:32px;height:32px;border-radius:50%;border:1px solid var(--border2);background:var(--bg4);color:var(--text);font-size:1.1rem;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.qty-btn.plus{background:var(--accent);border-color:var(--accent);color:#000;font-weight:700}
+.qty-num{font-weight:700;font-size:.95rem;min-width:18px;text-align:center}
+
+.cart-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--bg2);border-top:1px solid var(--border2);padding:1rem 1.25rem 1.5rem;z-index:100;display:none}
+.cart-bar.visible{display:block}
+.cart-bar-btn{width:100%;background:var(--accent);border:none;border-radius:var(--r);padding:1rem;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#000;cursor:pointer;display:flex;align-items:center;justify-content:space-between;-webkit-tap-highlight-color:transparent}
+.cart-count{background:rgba(0,0,0,.2);border-radius:8px;padding:.2rem .55rem;font-size:.8rem}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.panel{background:var(--bg2);border-radius:24px 24px 0 0;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;padding:1.5rem 1.25rem 2rem;animation:slideUp .25s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.panel-handle{width:36px;height:4px;background:var(--bg5);border-radius:2px;margin:0 auto 1.25rem}
+.panel-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:1.25rem}
+
+.cart-item{display:flex;align-items:center;justify-content:space-between;padding:.65rem 0;border-bottom:1px solid var(--border)}
+.cart-item:last-of-type{border-bottom:none}
+.ci-name{font-weight:500;font-size:.9rem}
+.ci-sub{font-size:.78rem;color:var(--text3);margin-top:1px}
+.ci-price{font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;color:var(--accent)}
+.cart-total{display:flex;align-items:center;justify-content:space-between;padding:1rem 0 .75rem;margin-top:.5rem;border-top:1px solid var(--border2)}
+.ct-label{font-size:.9rem;color:var(--text2)}
+.ct-val{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;color:var(--accent)}
+
+.pay-options{display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.25rem}
+.pay-btn{width:100%;border-radius:var(--r);padding:1rem 1.25rem;font-family:'Outfit',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:.75rem;border:1px solid var(--border2);background:var(--bg3);color:var(--text);-webkit-tap-highlight-color:transparent}
+.pay-btn.primary{background:var(--accent);border-color:var(--accent);color:#000}
+.pay-btn.primary .pay-icon{background:rgba(0,0,0,.15)}
+.pay-icon{width:40px;height:40px;border-radius:10px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
+.pay-desc{flex:1}
+.pay-name{font-weight:600;font-size:.9rem}
+.pay-sub{font-size:.75rem;opacity:.7;margin-top:1px}
+
+.table-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:1.25rem}
+.table-tile{aspect-ratio:1;border-radius:var(--r2);border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.table-tile.selected{background:var(--accent);border-color:var(--accent);color:#000}
+
+.success-screen{display:none;position:fixed;inset:0;background:var(--bg);z-index:300;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+.success-screen.show{display:flex}
+.success-icon{font-size:5rem;margin-bottom:1.5rem}
+.success-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.8rem;margin-bottom:.75rem}
+.success-sub{color:var(--text2);font-size:.95rem;line-height:1.6;margin-bottom:2rem}
+.btn-new{background:var(--accent);border:none;border-radius:var(--r);padding:.9rem 2rem;font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;color:#000;cursor:pointer}
+
+.btn-full{width:100%;background:var(--accent);border:none;border-radius:var(--r);padding:.85rem;font-family:'Syne',sans-serif;font-weight:700;font-size:.95rem;color:#000;cursor:pointer}
+.btn-full:active{transform:scale(.98)}
+.btn-ghost{width:100%;background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:.75rem;font-family:'Outfit',sans-serif;font-weight:500;font-size:.9rem;color:var(--text2);cursor:pointer;margin-top:.6rem}
+
+#welcome-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;text-align:center}
+#welcome-screen.hidden{display:none}
+.welcome-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:2.4rem;color:var(--accent);margin-bottom:.3rem}
+.welcome-sub{color:var(--text3);font-size:.9rem;margin-bottom:2.5rem}
+.welcome-label{font-size:.75rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem}
+.welcome-table-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.65rem;width:100%;max-width:360px;margin-bottom:1.5rem}
+.welcome-tile{aspect-ratio:1;border-radius:var(--r2);border:1px solid var(--border2);background:var(--bg3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:1.15rem;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.welcome-tile.selected{background:var(--accent);border-color:var(--accent);color:#000}
+.welcome-confirm-btn{width:100%;max-width:360px;background:var(--accent);border:none;border-radius:var(--r);padding:1rem;font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:#000;cursor:pointer;display:none}
+.welcome-confirm-btn.visible{display:block}
+
+#loading-screen{position:fixed;inset:0;background:var(--bg);z-index:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem}
+#loading-screen.hidden{display:none}
+.loading-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:2rem;color:var(--accent)}
+.loading-dot{display:flex;gap:.4rem}
+.loading-dot span{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:bounce 1.2s infinite}
+.loading-dot span:nth-child(2){animation-delay:.2s}
+.loading-dot span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:scale(0.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+
+/* GESLOTEN SCHERM */
+#closed-screen{position:fixed;inset:0;background:var(--bg);z-index:550;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem}
+#closed-screen.show{display:flex}
+.closed-icon{font-size:4rem;margin-bottom:1.5rem}
+.closed-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;margin-bottom:.75rem;color:var(--text)}
+.closed-msg{color:var(--text2);font-size:.95rem;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div class="loading-logo" id="loading-name">Taporder</div>
+  <div class="loading-dot"><span></span><span></span><span></span></div>
+</div>
+
+<div id="closed-screen">
+  <div class="closed-icon">⛔</div>
+  <div class="closed-title" id="closed-cafe-name">Taporder</div>
+  <div class="closed-msg" id="closed-msg-text">We zijn momenteel gesloten.</div>
+</div>
+
+<div id="welcome-screen" class="hidden">
+  <div class="welcome-logo" id="welcome-logo">Taporder</div>
+  <div class="welcome-sub" id="welcome-sub">Welkom! Kies je tafelnummer om te starten.</div>
+  <div class="welcome-label" id="welcome-label">Aan welke tafel zit je?</div>
+  <div class="welcome-table-grid" id="welcome-table-grid"></div>
+  <button class="welcome-confirm-btn" id="welcome-confirm-btn" onclick="confirmWelcomeTable()">Verdergaan →</button>
+</div>
+
+<div id="main-view" style="display:none">
+  <header>
+    <div class="logo" id="header-logo">Taporder</div>
+    <div class="table-pill" onclick="openTableSelect()">Tafel <strong id="table-num">—</strong> ▾</div>
+  </header>
+  <div class="lang-bar" id="lang-bar" style="display:none">
+    <button class="lang-btn active" id="lang-nl" onclick="setLang('nl')">🇧🇪 NL</button>
+    <button class="lang-btn" id="lang-fr" onclick="setLang('fr')">🇫🇷 FR</button>
+    <button class="lang-btn" id="lang-en" onclick="setLang('en')">🇬🇧 EN</button>
+  </div>
+  <div class="cat-scroll" id="cat-tabs"></div>
+  <div id="product-sections"></div>
+</div>
+
+<div class="cart-bar" id="cart-bar">
+  <button class="cart-bar-btn" onclick="openCart()">
+    <span id="cart-bar-label">🛒 Bekijk bestelling</span>
+    <span><span id="cart-bar-total" style="margin-right:.5rem">€0.00</span><span class="cart-count" id="cart-bar-count">0</span></span>
+  </button>
+</div>
+
+<div class="overlay" id="table-overlay" onclick="closeOverlayIf(event,'table-overlay')">
+  <div class="panel">
+    <div class="panel-handle"></div>
+    <div class="panel-title" id="t-title">Kies je tafel</div>
+    <div class="table-grid" id="table-grid"></div>
+    <button class="btn-ghost" onclick="closeOverlay('table-overlay')" id="t-cancel">Annuleren</button>
+  </div>
+</div>
+
+<div class="overlay" id="cart-overlay" onclick="closeOverlayIf(event,'cart-overlay')">
+  <div class="panel">
+    <div class="panel-handle"></div>
+    <div class="panel-title" id="c-title">Jouw bestelling</div>
+    <div id="cart-items-list"></div>
+    <div class="cart-total"><span class="ct-label" id="c-total-label">Totaal</span><span class="ct-val" id="cart-total-val">€0.00</span></div>
+    <button class="btn-full" onclick="openPayment()" id="c-pay-btn">Verder naar betaling</button>
+    <button class="btn-ghost" onclick="closeOverlay('cart-overlay')" id="c-continue">Verder winkelen</button>
+  </div>
+</div>
+
+<div class="overlay" id="pay-overlay" onclick="closeOverlayIf(event,'pay-overlay')">
+  <div class="panel">
+    <div class="panel-handle"></div>
+    <div class="panel-title" id="p-title">Betaalmethode</div>
+    <div id="pay-summary" style="background:var(--bg3);border-radius:var(--r2);padding:1rem;margin-bottom:1.25rem;"></div>
+    <div class="pay-options">
+      <button class="pay-btn primary" id="pay-bancontact-btn" onclick="placeOrder('bancontact')">
+        <div class="pay-icon">💳</div>
+        <div class="pay-desc">
+          <div class="pay-name" id="p-online-name">Bancontact / Online</div>
+          <div class="pay-sub" id="p-online-sub">Betaal nu veilig online</div>
+        </div>
+        <span>→</span>
+      </button>
+      <button class="pay-btn" onclick="placeOrder('cash')">
+        <div class="pay-icon">💵</div>
+        <div class="pay-desc">
+          <div class="pay-name" id="p-cash-name">Cash betalen</div>
+          <div class="pay-sub" id="p-cash-sub">Betaal aan de bar</div>
+        </div>
+        <span>→</span>
+      </button>
+    </div>
+    <button class="btn-ghost" onclick="closeOverlay('pay-overlay')" id="p-back">← Terug</button>
+    <div style="text-align:center;margin-top:.75rem;font-size:.72rem;color:var(--text3)">
+      Door te bestellen ga je akkoord met ons <a href="/privacy.html" target="_blank" style="color:var(--accent);text-decoration:none">privacybeleid</a>.
+      Allergenen info raadpleeg het personeel.
+    </div>
+  </div>
+</div>
+
+<div class="success-screen" id="success-screen">
+  <div class="success-icon">✅</div>
+  <div class="success-title" id="s-title">Bestelling geplaatst!</div>
+  <div class="success-sub" id="success-msg">Je bestelling is doorgestuurd naar de bar.</div>
+  <button class="btn-new" onclick="resetOrder()" id="s-new-btn">Nieuwe bestelling plaatsen</button>
+</div>
+
+<script>
+const SB_URL='https://ouqqbrcstyhzoymrwvld.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91cXFicmNzdHloem95bXJ3dmxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NTM0NTMsImV4cCI6MjA5MjUyOTQ1M30.81i_ykk1fGRBR4NuPNWN-TWp7aUbiOlkzRJjrfcocBM';
+const H={apikey:SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};
+
+async function dbSelect(t,p){const r=await fetch(`${SB_URL}/rest/v1/${t}?${p||''}`,{headers:H});if(!r.ok)throw new Error(await r.text());return r.json();}
+async function dbInsert(t,d){const r=await fetch(`${SB_URL}/rest/v1/${t}`,{method:'POST',headers:{...H,'Prefer':'return=minimal'},body:JSON.stringify(d)});if(!r.ok)throw new Error(await r.text());}
+
+// ═══ VERTALINGEN ═══
+const T={
+  nl:{
+    welcome:'Welkom! Kies je tafelnummer.',
+    tableLabel:'Aan welke tafel zit je?',
+    confirm:'Verdergaan →',
+    all:'Alles',
+    cartLabel:'🛒 Bekijk bestelling',
+    tableTitle:'Kies je tafel',
+    cancel:'Annuleren',
+    orderTitle:'Jouw bestelling',
+    total:'Totaal',
+    toPayment:'Verder naar betaling',
+    continueShopping:'Verder winkelen',
+    payTitle:'Betaalmethode',
+    onlineName:'Bancontact / Online',
+    onlineSub:'Betaal nu veilig online',
+    cashName:'Cash betalen',
+    cashSub:'Betaal aan de bar',
+    back:'← Terug',
+    successTitle:'Bestelling geplaatst!',
+    newOrder:'Nieuwe bestelling plaatsen',
+    allergens:'Allergenen',
+    closed:'Gesloten',
+  },
+  fr:{
+    welcome:'Bienvenue! Choisissez votre numéro de table.',
+    tableLabel:'À quelle table êtes-vous?',
+    confirm:'Continuer →',
+    all:'Tout',
+    cartLabel:'🛒 Voir la commande',
+    tableTitle:'Choisissez votre table',
+    cancel:'Annuler',
+    orderTitle:'Votre commande',
+    total:'Total',
+    toPayment:'Procéder au paiement',
+    continueShopping:'Continuer les achats',
+    payTitle:'Mode de paiement',
+    onlineName:'Bancontact / En ligne',
+    onlineSub:'Payez en ligne en toute sécurité',
+    cashName:'Paiement en espèces',
+    cashSub:'Payez au bar',
+    back:'← Retour',
+    successTitle:'Commande passée!',
+    newOrder:'Nouvelle commande',
+    allergens:'Allergènes',
+    closed:'Fermé',
+  },
+  en:{
+    welcome:'Welcome! Choose your table number.',
+    tableLabel:'Which table are you at?',
+    confirm:'Continue →',
+    all:'All',
+    cartLabel:'🛒 View order',
+    tableTitle:'Choose your table',
+    cancel:'Cancel',
+    orderTitle:'Your order',
+    total:'Total',
+    toPayment:'Proceed to payment',
+    continueShopping:'Continue shopping',
+    payTitle:'Payment method',
+    onlineName:'Bancontact / Online',
+    onlineSub:'Pay securely online',
+    cashName:'Pay cash',
+    cashSub:'Pay at the bar',
+    back:'← Back',
+    successTitle:'Order placed!',
+    newOrder:'New order',
+    allergens:'Allergens',
+    closed:'Closed',
+  }
+};
+
+let lang='nl';
+let products=[],tables=[],cart={},settings={};
+let selectedTable=null,welcomeSelectedTable=null;
+const urlTable=parseInt(new URLSearchParams(window.location.search).get('tafel'))||null;
+
+function tr(key){return(T[lang]||T.nl)[key]||key;}
+
+function setLang(l){
+  lang=l;
+  ['nl','fr','en'].forEach(x=>{
+    document.getElementById('lang-'+x).classList.toggle('active',x===l);
+  });
+  applyTranslations();
+  renderMenu();
+  renderWelcomeGrid();
+}
+
+function applyTranslations(){
+  document.getElementById('welcome-sub').textContent=tr('welcome');
+  document.getElementById('welcome-label').textContent=tr('tableLabel');
+  document.getElementById('welcome-confirm-btn').textContent=tr('confirm');
+  document.getElementById('cart-bar-label').textContent=tr('cartLabel');
+  document.getElementById('t-title').textContent=tr('tableTitle');
+  document.getElementById('t-cancel').textContent=tr('cancel');
+  document.getElementById('c-title').textContent=tr('orderTitle');
+  document.getElementById('c-total-label').textContent=tr('total');
+  document.getElementById('c-pay-btn').textContent=tr('toPayment');
+  document.getElementById('c-continue').textContent=tr('continueShopping');
+  document.getElementById('p-title').textContent=tr('payTitle');
+  document.getElementById('p-online-name').textContent=tr('onlineName');
+  document.getElementById('p-online-sub').textContent=tr('onlineSub');
+  document.getElementById('p-cash-name').textContent=tr('cashName');
+  document.getElementById('p-cash-sub').textContent=tr('cashSub');
+  document.getElementById('p-back').textContent=tr('back');
+  document.getElementById('s-title').textContent=tr('successTitle');
+  document.getElementById('s-new-btn').textContent=tr('newOrder');
+}
+
+// ═══ INIT ═══
+async function init(){
+  try{
+    const[prods,tafels,s]=await Promise.all([
+      dbSelect('products','order=cat.asc'),
+      dbSelect('tables','order=num.asc'),
+      dbSelect('settings','id=eq.1')
+    ]);
+    products=prods;
+    tables=tafels.map(t=>t.num);
+    settings=s[0]||{};
+
+    // Branding toepassen
+    applyBranding();
+
+    // Taal instellen
+    lang=settings.language||'nl';
+    setLang(lang);
+
+    // Taalbar tonen als meerdere talen beschikbaar
+    document.getElementById('lang-bar').style.display='flex';
+
+    // Controleer of café open is
+    if(settings.is_open===false){
+      document.getElementById('loading-screen').classList.add('hidden');
+      const closedScreen=document.getElementById('closed-screen');
+      document.getElementById('closed-cafe-name').textContent=settings.cafe_name||'Taporder';
+      document.getElementById('closed-msg-text').textContent=settings.closed_message||'We zijn momenteel gesloten.';
+      closedScreen.classList.add('show');
+      return;
+    }
+
+    document.getElementById('loading-screen').classList.add('hidden');
+
+    if(urlTable&&tables.includes(urlTable)){
+      selectedTable=urlTable;
+      document.getElementById('table-num').textContent=urlTable;
+      document.getElementById('main-view').style.display='block';
+    } else {
+      renderWelcomeGrid();
+      document.getElementById('welcome-screen').classList.remove('hidden');
+    }
+    renderMenu();
+    renderTableGrid();
+
+    // Poll producten/tafels/settings
+    setInterval(async()=>{
+      try{
+        const p=await dbSelect('products','order=cat.asc');
+        products=p;renderMenu();
+      }catch(e){}
+    },15000);
+    setInterval(async()=>{
+      try{
+        const t=await dbSelect('tables','order=num.asc');
+        tables=t.map(x=>x.num);renderTableGrid();renderWelcomeGrid();
+      }catch(e){}
+    },15000);
+    // Check open/gesloten elke 30s
+    setInterval(async()=>{
+      try{
+        const sv=await dbSelect('settings','id=eq.1');
+        if(sv[0]&&sv[0].is_open===false&&settings.is_open!==false){
+          window.location.reload();
+        }
+        if(sv[0])settings=sv[0];
+      }catch(e){}
+    },30000);
+
+  }catch(err){
+    document.getElementById('loading-screen').innerHTML=
+      `<div style="color:#ff4757;font-family:'Syne',sans-serif;font-size:1rem;padding:2rem;text-align:center">
+        ❌ Verbindingsfout<br>
+        <span style="font-size:.75rem;color:#5a5855;font-family:'Outfit',sans-serif;display:block;margin-top:.5rem">${err.message}</span>
+      </div>`;
+  }
+}
+
+function applyBranding(){
+  const name=settings.cafe_name||'Taporder';
+  const color=settings.accent_color||'#f5a623';
+  const emoji=settings.logo_emoji||'☕';
+  const sub=settings.cafe_subtitle||'';
+  document.getElementById('header-logo').textContent=emoji+' '+name;
+  document.getElementById('welcome-logo').textContent=emoji+' '+name;
+  document.getElementById('loading-name').textContent=emoji+' '+name;
+  document.title=name;
+  document.documentElement.style.setProperty('--accent',color);
+}
+
+// ═══ WELCOME ═══
+function renderWelcomeGrid(){
+  const el=document.getElementById('welcome-table-grid');
+  if(!el)return;
+  el.innerHTML=tables.map(t=>
+    `<div class="welcome-tile${t===welcomeSelectedTable?' selected':''}" onclick="pickWelcomeTable(${t})">${t}</div>`
+  ).join('');
+}
+function pickWelcomeTable(t){
+  welcomeSelectedTable=t;
+  renderWelcomeGrid();
+  document.getElementById('welcome-confirm-btn').classList.add('visible');
+}
+function confirmWelcomeTable(){
+  if(!welcomeSelectedTable)return;
+  selectedTable=welcomeSelectedTable;
+  document.getElementById('table-num').textContent=selectedTable;
+  document.getElementById('welcome-screen').classList.add('hidden');
+  document.getElementById('main-view').style.display='block';
+}
+
+// ═══ MENU ═══
+function renderMenu(){
+  const cats=[...new Set(products.map(p=>p.cat))];
+  document.getElementById('cat-tabs').innerHTML=
+    `<button class="cat-btn active" onclick="filterCat('all',this)">${tr('all')}</button>`+
+    cats.map(c=>`<button class="cat-btn" onclick="filterCat('${c}',this)">${c}</button>`).join('');
+  renderProductSections('all');
+}
+
+function filterCat(cat,btn){
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProductSections(cat);
+}
+
+function renderProductSections(activeCat){
+  const cats=activeCat==='all'?[...new Set(products.map(p=>p.cat))]:[activeCat];
+  const el=document.getElementById('product-sections');
+  el.innerHTML='';
+  cats.forEach(cat=>{
+    const items=products.filter(p=>p.cat===cat);
+    if(!items.length)return;
+    const sec=document.createElement('div');
+    sec.innerHTML=`<div class="section-head">${cat}</div><div class="product-list">${items.map(productCardHTML).join('')}</div>`;
+    el.appendChild(sec);
+  });
+}
+
+function productCardHTML(p){
+  const qty=cart[p.id]?cart[p.id].qty:0;
+  const allergenHTML=p.allergens?`<div><span class="allergen-tag">⚠ ${p.allergens}</span></div>`:'';
+  return `<div class="product-card${qty>0?' in-cart':''}" id="pc-${p.id}">
+    <div class="product-emoji">${p.emoji||'🍽'}</div>
+    <div class="product-info">
+      <div class="product-name">${p.name}</div>
+      ${p.description?`<div class="product-desc">${p.description}</div>`:''}
+      ${allergenHTML}
+      <div class="product-price">€${Number(p.price).toFixed(2)}</div>
+    </div>
+    <div class="qty-ctrl">
+      ${qty>0?`<div class="qty-btn" onclick="changeQty('${p.id}',-1)">−</div><div class="qty-num">${qty}</div>`:''}
+      <div class="qty-btn plus" onclick="changeQty('${p.id}',1)">+</div>
+    </div>
+  </div>`;
+}
+
+function changeQty(id,delta){
+  const prod=products.find(p=>String(p.id)===String(id));
+  if(!prod)return;
+  if(!cart[id])cart[id]={id,name:prod.name,price:prod.price,qty:0,emoji:prod.emoji,btw:prod.btw||21};
+  cart[id].qty+=delta;
+  if(cart[id].qty<=0)delete cart[id];
+  updateCartBar();
+  const el=document.getElementById('pc-'+id);
+  if(el)el.outerHTML=productCardHTML(prod);
+}
+
+function updateCartBar(){
+  const items=Object.values(cart);
+  const count=items.reduce((a,b)=>a+b.qty,0);
+  const total=items.reduce((a,b)=>a+b.price*b.qty,0);
+  document.getElementById('cart-bar-count').textContent=count;
+  document.getElementById('cart-bar-total').textContent='€'+total.toFixed(2);
+  count>0?document.getElementById('cart-bar').classList.add('visible'):document.getElementById('cart-bar').classList.remove('visible');
+}
+
+// ═══ TABLE GRID ═══
+function renderTableGrid(){
+  const el=document.getElementById('table-grid');if(!el)return;
+  el.innerHTML=tables.map(t=>
+    `<div class="table-tile${t===selectedTable?' selected':''}" onclick="selectTable(${t})">${t}</div>`
+  ).join('');
+}
+function selectTable(t){selectedTable=t;document.getElementById('table-num').textContent=t;closeOverlay('table-overlay');}
+
+// ═══ OVERLAYS ═══
+function openTableSelect(){renderTableGrid();document.getElementById('table-overlay').classList.add('open');}
+function openCart(){renderCartPanel();document.getElementById('cart-overlay').classList.add('open');}
+function openPayment(){
+  closeOverlay('cart-overlay');
+  if(!selectedTable){openTableSelect();return;}
+  renderPaySummary();
+  document.getElementById('pay-overlay').classList.add('open');
+}
+function closeOverlay(id){document.getElementById(id).classList.remove('open');}
+function closeOverlayIf(e,id){if(e.target.id===id)closeOverlay(id);}
+
+function renderCartPanel(){
+  const items=Object.values(cart);
+  const total=items.reduce((a,b)=>a+b.price*b.qty,0);
+  document.getElementById('cart-items-list').innerHTML=items.map(i=>`
+    <div class="cart-item">
+      <div><div class="ci-name">${i.emoji||''} ${i.name}</div><div class="ci-sub">${i.qty} × €${Number(i.price).toFixed(2)}</div></div>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <span class="ci-price">€${(i.qty*i.price).toFixed(2)}</span>
+        <div class="qty-btn" style="width:26px;height:26px;font-size:.9rem" onclick="changeQty('${i.id}',-1);renderCartPanel()">−</div>
+        <span style="font-size:.85rem;font-weight:600">${i.qty}</span>
+        <div class="qty-btn plus" style="width:26px;height:26px;font-size:.9rem" onclick="changeQty('${i.id}',1);renderCartPanel()">+</div>
+      </div>
+    </div>`).join('');
+  document.getElementById('cart-total-val').textContent='€'+total.toFixed(2);
+}
+
+function renderPaySummary(){
+  const items=Object.values(cart);
+  const total=items.reduce((a,b)=>a+b.price*b.qty,0);
+  document.getElementById('pay-summary').innerHTML=
+    items.map(i=>`<div style="display:flex;justify-content:space-between;font-size:.85rem;padding:.25rem 0;color:var(--text2)"><span>${i.qty}× ${i.name}</span><span style="color:var(--text)">€${(i.qty*i.price).toFixed(2)}</span></div>`).join('')+
+    `<div style="display:flex;justify-content:space-between;margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border)"><span style="font-weight:600">${tr('total')}</span><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent)">€${total.toFixed(2)}</span></div>`;
+}
+
+// ═══ PLACE ORDER ═══
+async function placeOrder(payMethod){
+  if(!selectedTable){closeOverlay('pay-overlay');openTableSelect();return;}
+  const items=Object.values(cart);
+  if(!items.length)return;
+  const total=items.reduce((a,b)=>a+b.price*b.qty,0);
+
+  // Toon laadknop
+  const payBtn = document.getElementById(payMethod==='bancontact'?'pay-bancontact-btn':'pay-bancontact-btn');
+  
+  try{
+    // Bestelling eerst opslaan in Supabase
+    // Gebruik een tijdelijk ID om later te updaten met Mollie ID
+    const orderTs = Date.now();
+    await dbInsert('orders',{
+      table_num:selectedTable,
+      items:JSON.stringify(items.map(i=>({name:i.name,qty:i.qty,price:i.price,btw:i.btw||21}))),
+      total,payment:payMethod,status:'nieuw',
+      payment_status:payMethod==='cash'?'cash':'pending',
+      ts:orderTs
+    });
+
+    // Haal het net aangemaakte order op om het ID te kennen
+    const newOrders = await dbSelect('orders',`ts=eq.${orderTs}&table_num=eq.${selectedTable}&order=id.desc&limit=1`);
+    const newOrderId = newOrders[0]?.id;
+
+    if(payMethod==='bancontact'){
+      // Roep Netlify Function aan — Mollie key zit NOOIT in de browser
+      const currentUrl = window.location.href.split('?')[0];
+      const redirectUrl = `${currentUrl}?tafel=${selectedTable}&betaald=1&order=${newOrderId}`;
+
+      let data;
+      try{
+        const res = await fetch('/api/create-payment', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            amount: total,
+            description: `Bestelling Tafel ${selectedTable} — ${settings.cafe_name||'Taporder'}`,
+            orderId: newOrderId,
+            tableNum: selectedTable,
+            redirectUrl: redirectUrl
+          })
+        });
+        data = await res.json();
+      }catch(fetchErr){
+        data = { error: 'Netwerk fout: ' + fetchErr.message };
+      }
+
+      if(!data || data.error){
+        // Mollie mislukt — bestelling al opgeslagen, vraag cash te betalen
+        closeOverlay('pay-overlay');
+        document.getElementById('success-msg').innerHTML=
+          `Tafel <strong>${selectedTable}</strong> · €${total.toFixed(2)}<br><br>
+          ⚠️ Online betaling tijdelijk niet beschikbaar.<br>
+          Betaal cash aan de bar.<br>
+          <span style="font-size:.8rem;color:var(--text3)">Je bestelling is al doorgestuurd naar de bar.</span>`;
+        document.getElementById('success-screen').classList.add('show');
+        return;
+      }
+
+      // Sla Mollie payment ID op
+      if(newOrderId && data.paymentId){
+        try{
+          await fetch(`${SB_URL}/rest/v1/orders?id=eq.${newOrderId}`,{
+            method:'PATCH',
+            headers:{...H,'Prefer':'return=minimal'},
+            body:JSON.stringify({mollie_id:data.paymentId})
+          });
+        }catch(e){}
+      }
+
+      // Stuur klant naar Mollie betaalpagina
+      window.location.href = data.checkoutUrl;
+      return;
+    }
+
+    // Cash betaling
+    closeOverlay('pay-overlay');
+    document.getElementById('success-msg').innerHTML=
+      `Tafel <strong>${selectedTable}</strong> · €${total.toFixed(2)}<br>
+      💵 Betaal cash aan de bar. ☕`;
+    document.getElementById('success-screen').classList.add('show');
+
+  }catch(err){
+    alert('Fout bij bestelling: '+err.message);
+  }
+}
+
+function resetOrder(){
+  cart={};
+  document.getElementById('success-screen').classList.remove('show');
+  updateCartBar();
+  renderMenu();
+}
+
+// Check of klant terugkomt van Mollie betaling
+const urlParams2 = new URLSearchParams(window.location.search);
+if(urlParams2.get('betaald')==='1'){
+  const orderId = urlParams2.get('order');
+  // Toon succesbericht
+  document.getElementById('loading-screen').classList.add('hidden');
+  document.getElementById('success-msg').innerHTML=
+    `Tafel <strong>${urlParams2.get('tafel')||'?'}</strong><br><br>
+    ✅ Betaling ontvangen via Bancontact!<br>
+    Je bestelling is bevestigd. ☕`;
+  document.getElementById('success-screen').classList.add('show');
+  // Verwijder URL params zodat bij refresh geen dubbele melding
+  window.history.replaceState({}, document.title, window.location.pathname+'?tafel='+urlParams2.get('tafel'));
+} else {
+  init();
+}
+</script>
+</body>
+</html>

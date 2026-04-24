@@ -1,0 +1,8 @@
+{
+  "name": "taporder",
+  "version": "2.0.0",
+  "description": "Taporder — Café bestelsysteem",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
